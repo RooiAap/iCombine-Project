@@ -69,7 +69,6 @@
      <string>File</string>
     </property>
     <addaction name="actionLoad"/>
-    <addaction name="actionExport"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>

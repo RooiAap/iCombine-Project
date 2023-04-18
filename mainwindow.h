@@ -54,8 +54,6 @@ private slots:
 
     void on_actionLoad_triggered();
 
-    void on_actionExport_triggered();
-
     void on_actionAbout_triggered();
 
 public slots:

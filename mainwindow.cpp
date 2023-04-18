@@ -76,11 +76,6 @@ void MainWindow::on_actionLoad_triggered()
     this->loadFile();
 }
 
-void MainWindow::on_actionExport_triggered()
-{
-    qDebug() << "Export File";
-}
-
 void MainWindow::receivePaths(QString archive)
 {
     this->filePath = archive;
