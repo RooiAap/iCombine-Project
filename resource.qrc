@@ -5,5 +5,8 @@
     <qresource prefix="/img">
         <file>img/info_icon.png</file>
         <file>img/error_icon.png</file>
+        <file>img/check_icon.svg</file>
+        <file>img/cross_icon.svg</file>
+        <file>img/minus_icon.svg</file>
     </qresource>
 </RCC>

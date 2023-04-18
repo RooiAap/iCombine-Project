@@ -25,6 +25,7 @@ HEADERS += \
     filenotpopup.h \
     loadingpopup.h \
     mainwindow.h \
+    test_case_types.h \
     zip_file.hpp
 
 FORMS += \

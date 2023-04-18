@@ -6,21 +6,9 @@
 #include <vector>
 #include <filesystem>
 
+#include <test_case_types.h>
+
 namespace fs = std::filesystem;
-
-typedef struct test_result
-{
-    std::string test_date;
-    std::string test_time;
-    std::string test_outcome;
-    bool valid = true;
-}test_result;
-
-typedef struct test
-{
-    std::string test_name;
-    std::vector<test_result> results;
-}test;
 
 class archiveParser
 {

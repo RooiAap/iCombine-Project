@@ -8,7 +8,9 @@
 #include <QString>
 #include <QDir>
 #include <QThread>
+#include <QTreeWidget>
 
+#include <test_case_types.h>
 #include <archiveinoutdialog.h>
 #include <loadingpopup.h>
 
@@ -28,8 +30,11 @@ public:
     void setFilePath(QDir path);
     void setoutputPath(QDir path);
 
-protected:
+private:
     void loadFile();
+
+    void addTreeRoot(const test &t);
+    void addTreeChild(QTreeWidgetItem *parent, const test_result &r);
 
 private:
     Ui::MainWindow *ui;

@@ -8,6 +8,8 @@
 #include <QPushButton>
 #include <QFuture>
 #include <QtConcurrent/QtConcurrent>
+#include <QBrush>
+#include <QColor>
 
 #include <filesystem>
 
@@ -25,9 +27,16 @@ MainWindow::MainWindow(QWidget *parent)
 {
     this->ui->setupUi(this);
 
-    this->listWidget = new QListWidget(this);
-    this->setCentralWidget(this->listWidget);
-    this->ui->centralwidget->setContentsMargins(0, 0, 0 ,0);
+    this->setCentralWidget(this->ui->treeWidget);
+    this->ui->centralwidget->setContentsMargins(0, 0, 0, 0);
+    this->ui->treeWidget->setColumnCount(3);
+    this->ui->treeWidget->setDropIndicatorShown(false);
+    this->ui->treeWidget->setStyleSheet("QHeaderView::section {"
+                                        "   background: rgb(238, 240, 241);"
+                                        "   border: 0px;"
+                                        "   border-right: 0px;"
+                                        "   border-left: 0px;"
+                                        "}");
 
     this->statusLabel = new QLabel(this->ui->statusbar);
     this->statusLabel->setText("No File");
@@ -127,6 +136,39 @@ void MainWindow::loadFile()
     delete parser;
 
     for(const auto &test: results){
-        this->listWidget->addItem(QString::fromStdString(test.test_name));
+        this->addTreeRoot(test);
+    }
+    this->ui->treeWidget->resizeColumnToContents(0);
+}
+
+void MainWindow::addTreeRoot(const test &t)
+{
+    QTreeWidgetItem *treeItem = new QTreeWidgetItem(this->ui->treeWidget);
+
+    treeItem->setText(0, QString::fromStdString(t.test_name));
+
+    for(const auto &item: t.results){
+        this->addTreeChild(treeItem, item);
+    }
+    treeItem->setExpanded(true);
+}
+
+void MainWindow::addTreeChild(QTreeWidgetItem *parent, const test_result &r)
+{
+    QTreeWidgetItem *treeItem = new QTreeWidgetItem(parent);
+
+    for(int i = 0; i < this->ui->treeWidget->columnCount(); i++){
+        treeItem->setBackground(i, QBrush(QColor(238, 240, 241)));
+    }
+
+    treeItem->setText(0, QString::fromStdString(r.test_date));
+    treeItem->setText(1, QString::fromStdString(r.test_time));
+    treeItem->setText(2, QString::fromStdString(r.test_outcome));
+    if(r.test_outcome == "passed"){
+        treeItem->setIcon(2, QIcon(":/img/img/check_icon.svg"));
+    }else if(r.test_outcome == "inconclusive"){
+        treeItem->setIcon(2, QIcon(":/img/img/minus_icon.svg"));
+    }else{
+        treeItem->setIcon(2, QIcon(":/img/img/cross_icon.svg"));
     }
 }
