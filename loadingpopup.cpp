@@ -39,7 +39,6 @@ void loadingPopUp::receiveClose()
 void loadingPopUp::startSpinner()
 {
     if(this->spinnerGif->isValid()){
-        qDebug() << "Starting spinner";
         spinnerGif->start();
         this->ui->spinnerLabel->show();
     }
@@ -48,7 +47,6 @@ void loadingPopUp::startSpinner()
 void loadingPopUp::stopSpinner()
 {
     if(this->spinnerGif->isValid()){
-        qDebug() << "Stopping spinner";
         this->spinnerGif->stop();
         this->ui->spinnerLabel->show();
     }
