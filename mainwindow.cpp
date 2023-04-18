@@ -37,6 +37,7 @@ MainWindow::MainWindow(QWidget *parent)
                                         "   border-right: 0px;"
                                         "   border-left: 0px;"
                                         "}");
+    this->ui->treeWidget->setHeaderHidden(true);
 
     this->statusLabel = new QLabel(this->ui->statusbar);
     this->statusLabel->setText("No File");
@@ -103,7 +104,7 @@ void MainWindow::loadFile()
 
     this->statusLabel->setText(this->filePath);
 
-    archiveParser *parser = new archiveParser();    
+    std::vector<test> *results = new std::vector<test>();
     QFuture<void> future = QtConcurrent::run([=](){
         fs::path zip_p(fs::absolute(this->filePath.toStdString()));
         fs::path zip_extract_p((this->outputPath.toStdString() + "/" + zip_p.stem().string()));
@@ -120,10 +121,17 @@ void MainWindow::loadFile()
         fs::create_directory(test_result_extract_zip_p);
         test_result_zip.extractall(test_result_extract_zip_p.string());
 
-        parser->setDirectoryPath(zip_extract_p.string());
+        archiveParser parser(zip_extract_p.string());
         qDebug() << "Extract finished";
+
+        qDebug() << "\n";
+        std::vector<test> r = parser.parse();
+        for(const auto &item: r){
+            results->push_back(item);
+        }
+
         emit this->sendExtractFinished();
-    });
+    });       
 
     this->loading_pop_up->setModal(true);
     this->loading_pop_up->startSpinner();
@@ -131,14 +139,11 @@ void MainWindow::loadFile()
     this->loading_pop_up->stopSpinner();
     delete this->loading_pop_up;
 
-    qDebug() << "\n";
-    std::vector<test> results = parser->parse();
-    delete parser;
-
-    for(const auto &test: results){
+    for(const auto &test: *results){
         this->addTreeRoot(test);
     }
     this->ui->treeWidget->resizeColumnToContents(0);
+    delete results;
 }
 
 void MainWindow::addTreeRoot(const test &t)
