@@ -10,6 +10,7 @@
 #include <QtConcurrent/QtConcurrent>
 #include <QBrush>
 #include <QColor>
+#include <QPainter>
 
 #include <filesystem>
 
@@ -27,17 +28,25 @@ MainWindow::MainWindow(QWidget *parent)
 {
     this->ui->setupUi(this);
 
-    this->setCentralWidget(this->ui->treeWidget);
-    this->ui->centralwidget->setContentsMargins(0, 0, 0, 0);
-    this->ui->treeWidget->setColumnCount(3);
-    this->ui->treeWidget->setDropIndicatorShown(false);
-    this->ui->treeWidget->setStyleSheet("QHeaderView::section {"
-                                        "   background: rgb(238, 240, 241);"
-                                        "   border: 0px;"
-                                        "   border-right: 0px;"
-                                        "   border-left: 0px;"
-                                        "}");
-    this->ui->treeWidget->setHeaderHidden(true);
+    QPixmap map(":/img/img/file_open_img.png");
+    this->picLabel = new QLabel(this);
+
+    QRect rect(this->rect().center().x() - (map.size().width() / 2),
+               this->rect().center().y() - (map.size().height() / 2),
+               map.size().width(),
+               map.size().height());
+
+    this->picLabel->setGeometry(rect);
+    this->picLabel->setPixmap(map);
+
+    this->guideLabel = new QLabel(this);
+    this->guideLabel->setText("Double click or Drag and Drop\nTo load file");
+    this->guideLabel->adjustSize();
+    this->guideLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+    this->guideLabel->setGeometry(this->rect().center().x() - (this->guideLabel->frameRect().width() / 2),
+                                  (this->rect().center().y() - (this->guideLabel->frameRect().height() / 2)) + 75,
+                                  this->guideLabel->rect().width(),
+                                  this->guideLabel->rect().height());
 
     this->statusLabel = new QLabel(this->ui->statusbar);
     this->statusLabel->setText("No File");
@@ -47,6 +56,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     this->inOut = new archiveInOutDialog(this);
     this->loading_pop_up = new loadingPopUp(this);
+
+    this->filePath = "";
 
     connect(this->inOut, &archiveInOutDialog::sendPaths, this, &MainWindow::receivePaths);
     connect(this, &MainWindow::sendExtractFinished, this->loading_pop_up, &loadingPopUp::receiveClose);
@@ -61,8 +72,10 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
     delete this->ui;
-    delete this->listWidget;
+    delete this->treeWidget;
     delete this->inOut;
+    delete this->statusLabel;
+    delete this->guideLabel;
 }
 
 void MainWindow::on_actionExit_triggered()
@@ -89,6 +102,29 @@ void MainWindow::on_actionAbout_triggered()
     abt.exec();
 }
 
+void MainWindow::resizeEvent(QResizeEvent* event)
+{
+    QMainWindow::resizeEvent(event);
+
+    QPixmap map(this->picLabel->pixmap());
+    QRect rect(this->rect().center().x() - (map.size().width() / 2),
+               this->rect().center().y() - (map.size().height() / 2),
+               map.size().width(),
+               map.size().height());
+
+    this->picLabel->setGeometry(rect);
+
+    this->guideLabel->setGeometry(this->rect().center().x() - (this->guideLabel->frameRect().width() / 2),
+                                  (this->rect().center().y() - (this->guideLabel->frameRect().height() / 2)) + 75,
+                                  this->guideLabel->rect().width(),
+                                  this->guideLabel->rect().height());
+}
+
+void MainWindow::mouseDoubleClickEvent(QMouseEvent *e)
+{
+    this->loadFile();
+}
+
 void MainWindow::loadFile()
 {
     this->inOut->exec();
@@ -96,6 +132,19 @@ void MainWindow::loadFile()
     if(this->filePath.size() == 0){
         return;
     }
+
+    this->treeWidget = new QTreeWidget(this);
+    this->setCentralWidget(this->treeWidget);
+    this->ui->centralwidget->setContentsMargins(0, 0, 0, 0);
+    this->treeWidget->setColumnCount(3);
+    this->treeWidget->setDropIndicatorShown(false);
+    this->treeWidget->setStyleSheet("QHeaderView::section {"
+                                        "   background: rgb(238, 240, 241);"
+                                        "   border: 0px;"
+                                        "   border-right: 0px;"
+                                        "   border-left: 0px;"
+                                        "}");
+    this->treeWidget->setHeaderHidden(true);
 
     this->statusLabel->setText(this->filePath);
 
@@ -137,13 +186,13 @@ void MainWindow::loadFile()
     for(const auto &test: *results){
         this->addTreeRoot(test);
     }
-    this->ui->treeWidget->resizeColumnToContents(0);
+    this->treeWidget->resizeColumnToContents(0);
     delete results;
 }
 
 void MainWindow::addTreeRoot(const test &t)
 {
-    QTreeWidgetItem *treeItem = new QTreeWidgetItem(this->ui->treeWidget);
+    QTreeWidgetItem *treeItem = new QTreeWidgetItem(this->treeWidget);
 
     treeItem->setText(0, QString::fromStdString(t.test_name));
 
@@ -157,7 +206,7 @@ void MainWindow::addTreeChild(QTreeWidgetItem *parent, const test_result &r)
 {
     QTreeWidgetItem *treeItem = new QTreeWidgetItem(parent);
 
-    for(int i = 0; i < this->ui->treeWidget->columnCount(); i++){
+    for(int i = 0; i < this->treeWidget->columnCount(); i++){
         treeItem->setBackground(i, QBrush(QColor(238, 240, 241)));
     }
 

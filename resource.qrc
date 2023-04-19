@@ -8,5 +8,6 @@
         <file>img/check_icon.svg</file>
         <file>img/cross_icon.svg</file>
         <file>img/minus_icon.svg</file>
+        <file>img/file_open_img.png</file>
     </qresource>
 </RCC>
