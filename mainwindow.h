@@ -4,6 +4,8 @@
 
 #include <QMainWindow>
 
+#include <QMouseEvent>
+
 #include <QListWidget>
 #include <QString>
 #include <QDir>
@@ -27,10 +29,10 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    void setFilePath(QDir path);
-    void setoutputPath(QDir path);
-
 private:
+    void resizeEvent(QResizeEvent* event) override;
+    void mouseDoubleClickEvent(QMouseEvent *e) override;
+
     void loadFile();
 
     void addTreeRoot(const test &t);
@@ -39,15 +41,17 @@ private:
 private:
     Ui::MainWindow *ui;
 
-    QListWidget *listWidget;
+    QTreeWidget *treeWidget;
 
     QString filePath;
     QString outputPath;
 
     QLabel *statusLabel;
+    QLabel *picLabel;
+    QLabel *guideLabel;
 
     loadingPopUp *loading_pop_up;
-    archiveInOutDialog *inOut;
+    archiveInOutDialog *inOut;        
 
 private slots:
     void on_actionExit_triggered();
