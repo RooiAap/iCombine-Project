@@ -57,7 +57,10 @@ private:
     QLabel *guideLabel;
 
     loadingPopUp *loading_pop_up;
-    archiveInOutDialog *inOut;        
+    archiveInOutDialog *inOut;
+
+public slots:
+    void receivePaths(QString archive);
 
 private slots:
     void on_actionExit_triggered();
@@ -66,11 +69,11 @@ private slots:
 
     void on_actionAbout_triggered();
 
-public slots:
-    void receivePaths(QString archive);
+    void recieveDragNDropComplete(QStringList files);
 
 signals:
     void sendExtractFinished();
+    void sendDragNDropComplete(QStringList files);
 };
 
 #endif // MAINWINDOW_H

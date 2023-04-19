@@ -29,6 +29,8 @@ MainWindow::MainWindow(QWidget *parent)
     this->ui->setupUi(this);
     this->setAcceptDrops(true);
 
+    this->treeWidget = nullptr;
+
     QPixmap map(":/img/img/file_open_img.png");
     this->picLabel = new QLabel(this);
 
@@ -62,6 +64,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(this->inOut, &archiveInOutDialog::sendPaths, this, &MainWindow::receivePaths);
     connect(this, &MainWindow::sendExtractFinished, this->loading_pop_up, &loadingPopUp::receiveClose);
+    connect(this, &MainWindow::sendDragNDropComplete, this, &MainWindow::recieveDragNDropComplete);
 
     this->outputPath = QDir::tempPath() + "/icombine";
     QDir dir;
@@ -73,10 +76,13 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
     delete this->ui;
-    delete this->treeWidget;
     delete this->inOut;
     delete this->statusLabel;
     delete this->guideLabel;
+    if(this->treeWidget != nullptr){
+        delete this->treeWidget;
+        this->treeWidget = nullptr;
+    }
 }
 
 void MainWindow::on_actionExit_triggered()
@@ -101,6 +107,17 @@ void MainWindow::on_actionAbout_triggered()
     aboutDialog abt;
     abt.setModal(true);
     abt.exec();
+}
+
+void MainWindow::recieveDragNDropComplete(QStringList files)
+{
+//    Will be implemented in with multi-file support
+//    foreach(const auto &file, files){
+//        this->loadFile(file);
+//    }
+    for(int i = 0; i < 1; i++){
+        this->loadFile(files.at(i));
+    }
 }
 
 void MainWindow::resizeEvent(QResizeEvent* event)
@@ -137,19 +154,18 @@ void MainWindow::dropEvent(QDropEvent *e)
 {
     QStringList acceptedTypes;
     acceptedTypes << "tpp";
-//    foreach(const auto &url, e->mimeData()->urls()){
-//        QString filename = url.toLocalFile();
-//        qDebug() << "Dropped file: " << filename;
-//    }
-    for(int i = 0; i < 1; i++){
-        QString fname = e->mimeData()->urls().at(i).toLocalFile();
+
+    QStringList validDroppedFiles;
+    foreach(const auto &url, e->mimeData()->urls()){
+        QString fname = url.toLocalFile();
         QFileInfo info(fname);
         if(info.exists()){
-            if(acceptedTypes.contains(info.suffix().trimmed(), Qt::CaseSensitive)){
-                this->loadFile(fname);
+            if(acceptedTypes.contains(info.suffix().trimmed())){
+                validDroppedFiles << fname;
             }
         }
     }
+    emit this->sendDragNDropComplete(validDroppedFiles);
 }
 
 void MainWindow::loadFile()
@@ -170,12 +186,11 @@ void MainWindow::loadFile(QString filePath)
         return;
     }
 
-    this->filePath = filePath;
-
     this->treeWidget = new QTreeWidget(this);
     this->setCentralWidget(this->treeWidget);
     this->ui->centralwidget->setContentsMargins(0, 0, 0, 0);
     this->treeWidget->setColumnCount(3);
+    this->treeWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
     this->treeWidget->setDropIndicatorShown(false);
     this->treeWidget->setStyleSheet("QHeaderView::section {"
                                     "   background: rgb(238, 240, 241);"
@@ -185,6 +200,7 @@ void MainWindow::loadFile(QString filePath)
                                     "}");
     this->treeWidget->setHeaderHidden(true);
 
+    this->filePath = filePath;
     this->statusLabel->setText(this->filePath);
 
     std::vector<test> *results = new std::vector<test>();
