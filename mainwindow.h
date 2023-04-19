@@ -5,6 +5,8 @@
 #include <QMainWindow>
 
 #include <QMouseEvent>
+#include <QDragEnterEvent>
+#include <QDropEvent>
 
 #include <QListWidget>
 #include <QString>
@@ -33,7 +35,11 @@ private:
     void resizeEvent(QResizeEvent* event) override;
     void mouseDoubleClickEvent(QMouseEvent *e) override;
 
+    void dragEnterEvent(QDragEnterEvent *e) override;
+    void dropEvent(QDropEvent *e) override;
+
     void loadFile();
+    void loadFile(QString filePath);
 
     void addTreeRoot(const test &t);
     void addTreeChild(QTreeWidgetItem *parent, const test_result &r);

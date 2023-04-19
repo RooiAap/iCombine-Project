@@ -27,6 +27,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     this->ui->setupUi(this);
+    this->setAcceptDrops(true);
 
     QPixmap map(":/img/img/file_open_img.png");
     this->picLabel = new QLabel(this);
@@ -125,6 +126,32 @@ void MainWindow::mouseDoubleClickEvent(QMouseEvent *e)
     this->loadFile();
 }
 
+void MainWindow::dragEnterEvent(QDragEnterEvent *e)
+{
+    if(e->mimeData()->hasUrls()){
+        e->acceptProposedAction();
+    }
+}
+
+void MainWindow::dropEvent(QDropEvent *e)
+{
+    QStringList acceptedTypes;
+    acceptedTypes << "tpp";
+//    foreach(const auto &url, e->mimeData()->urls()){
+//        QString filename = url.toLocalFile();
+//        qDebug() << "Dropped file: " << filename;
+//    }
+    for(int i = 0; i < 1; i++){
+        QString fname = e->mimeData()->urls().at(i).toLocalFile();
+        QFileInfo info(fname);
+        if(info.exists()){
+            if(acceptedTypes.contains(info.suffix().trimmed(), Qt::CaseSensitive)){
+                this->loadFile(fname);
+            }
+        }
+    }
+}
+
 void MainWindow::loadFile()
 {
     this->inOut->exec();
@@ -133,17 +160,29 @@ void MainWindow::loadFile()
         return;
     }
 
+    this->loadFile(this->filePath);
+}
+
+void MainWindow::loadFile(QString filePath)
+{
+    QFileInfo info(filePath);
+    if(!info.exists()){
+        return;
+    }
+
+    this->filePath = filePath;
+
     this->treeWidget = new QTreeWidget(this);
     this->setCentralWidget(this->treeWidget);
     this->ui->centralwidget->setContentsMargins(0, 0, 0, 0);
     this->treeWidget->setColumnCount(3);
     this->treeWidget->setDropIndicatorShown(false);
     this->treeWidget->setStyleSheet("QHeaderView::section {"
-                                        "   background: rgb(238, 240, 241);"
-                                        "   border: 0px;"
-                                        "   border-right: 0px;"
-                                        "   border-left: 0px;"
-                                        "}");
+                                    "   background: rgb(238, 240, 241);"
+                                    "   border: 0px;"
+                                    "   border-right: 0px;"
+                                    "   border-left: 0px;"
+                                    "}");
     this->treeWidget->setHeaderHidden(true);
 
     this->statusLabel->setText(this->filePath);
@@ -175,7 +214,7 @@ void MainWindow::loadFile()
         }
 
         emit this->sendExtractFinished();
-    });       
+    });
 
     this->loading_pop_up->setModal(true);
     this->loading_pop_up->startSpinner();
