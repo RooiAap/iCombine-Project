@@ -35,7 +35,8 @@ FORMS += \
     loadingpopup.ui \
     mainwindow.ui
 
-INCLUDEPATH +=
+RC_ICONS += \
+    ./img/icon.ico
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
