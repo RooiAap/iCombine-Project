@@ -5,7 +5,8 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 CONFIG += c++20 \
           warn_off
 
-QMAKE_TARGET_DESCRIPTION += "My App"
+TARGET = "L3 Report Generator"
+QMAKE_TARGET_DESCRIPTION += "L3 Report Generator"
 
 VERSION_MAJOR = 1
 VERSION_MINOR = 0
