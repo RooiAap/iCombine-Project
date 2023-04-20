@@ -8,11 +8,11 @@
 #include <QDragEnterEvent>
 #include <QDropEvent>
 
-#include <QListWidget>
 #include <QString>
 #include <QDir>
 #include <QThread>
 #include <QTreeWidget>
+#include <QTabWidget>
 
 #include <test_case_types.h>
 #include <archiveinoutdialog.h>
@@ -40,14 +40,15 @@ private:
 
     void loadFile();
     void loadFile(QString filePath);
+    static void extract(MainWindow *window, QString filePath, QString outputPath, std::vector<test> *results);
 
-    void addTreeRoot(const test &t);
-    void addTreeChild(QTreeWidgetItem *parent, const test_result &r);
+    void addTreeRoot(QTreeWidget *tree, const test &t);
+    void addTreeChild(QTreeWidget *tree, QTreeWidgetItem *parent, const test_result &r);
 
 private:
     Ui::MainWindow *ui;
 
-    QTreeWidget *treeWidget;
+    QTabWidget *tabWidget;
 
     QString filePath;
     QString outputPath;
@@ -70,6 +71,7 @@ private slots:
     void on_actionAbout_triggered();
 
     void recieveDragNDropComplete(QStringList files);
+    void recieveTabClose(int index);
 
 signals:
     void sendExtractFinished();
