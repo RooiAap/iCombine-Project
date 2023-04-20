@@ -123,7 +123,7 @@ void MainWindow::recieveTabClose(int index)
 {
     this->tabWidget->removeTab(index);
     if(this->tabWidget->count() == 0){
-        this->tabWidget->close();
+        this->setCentralWidget(nullptr);
         delete this->tabWidget;
         this->tabWidget = nullptr;
         this->statusLabel->setText("No File");
