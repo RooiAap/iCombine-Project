@@ -113,8 +113,10 @@ void MainWindow::recieveDragNDropComplete(QStringList files)
 
 void MainWindow::recieveTabChanged(int index)
 {
-    customTreeWidget *tree = static_cast<customTreeWidget*>(this->tabWidget->widget(index));
-    this->statusLabel->setText(tree->getPath());
+    if(index > 0){
+        customTreeWidget *tree = static_cast<customTreeWidget*>(this->tabWidget->widget(index));
+        this->statusLabel->setText(tree->getPath());
+    }
 }
 
 void MainWindow::recieveTabClose(int index)
