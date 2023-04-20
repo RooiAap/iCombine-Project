@@ -123,7 +123,6 @@ void MainWindow::recieveTabClose(int index)
 {
     this->tabWidget->removeTab(index);
     if(this->tabWidget->count() == 0){
-        this->setCentralWidget(nullptr);
         delete this->tabWidget;
         this->tabWidget = nullptr;
         this->statusLabel->setText("No File");
@@ -203,7 +202,6 @@ void MainWindow::loadFile(QString filePath)
         this->tabWidget = new QTabWidget(this);
         this->tabWidget->setTabsClosable(true);
         this->setCentralWidget(this->tabWidget);
-        this->ui->centralwidget->setContentsMargins(0, 0, 0, 0);
         connect(this->tabWidget, &QTabWidget::currentChanged, this, &MainWindow::recieveTabChanged);
         connect(this->tabWidget, &QTabWidget::tabCloseRequested, this, &MainWindow::recieveTabClose);
     }
