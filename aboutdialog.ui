@@ -10,23 +10,32 @@
     <height>300</height>
    </rect>
   </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
   <property name="windowTitle">
    <string>About</string>
   </property>
   <widget class="QLabel" name="iconLabel">
    <property name="geometry">
     <rect>
-     <x>176</x>
-     <y>40</y>
-     <width>48</width>
-     <height>48</height>
+     <x>140</x>
+     <y>20</y>
+     <width>120</width>
+     <height>120</height>
     </rect>
    </property>
    <property name="text">
     <string/>
    </property>
    <property name="pixmap">
-    <pixmap resource="resource.qrc">:/img/img/info_icon.png</pixmap>
+    <pixmap resource="resource.qrc">:/img/img/icombine_img.png</pixmap>
+   </property>
+   <property name="scaledContents">
+    <bool>true</bool>
    </property>
   </widget>
   <widget class="QPushButton" name="okButton">
@@ -40,6 +49,19 @@
    </property>
    <property name="text">
     <string>Ok</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="versionLabel">
+   <property name="geometry">
+    <rect>
+     <x>170</x>
+     <y>170</y>
+     <width>63</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>TextLabel</string>
    </property>
   </widget>
  </widget>
