@@ -12,10 +12,10 @@
 #include <QColor>
 #include <QPainter>
 
-#include <exception>
 #include <filesystem>
 
 #include <aboutdialog.h>
+#include <customtreewidget.h>
 
 #include <archiveparser.h>
 
@@ -111,6 +111,12 @@ void MainWindow::recieveDragNDropComplete(QStringList files)
     }
 }
 
+void MainWindow::recieveTabChanged(int index)
+{
+    customTreeWidget *tree = static_cast<customTreeWidget*>(this->tabWidget->widget(index));
+    this->statusLabel->setText(tree->getPath());
+}
+
 void MainWindow::recieveTabClose(int index)
 {
     this->tabWidget->removeTab(index);
@@ -196,10 +202,11 @@ void MainWindow::loadFile(QString filePath)
         this->tabWidget->setTabsClosable(true);
         this->setCentralWidget(this->tabWidget);
         this->ui->centralwidget->setContentsMargins(0, 0, 0, 0);
+        connect(this->tabWidget, &QTabWidget::currentChanged, this, &MainWindow::recieveTabChanged);
         connect(this->tabWidget, &QTabWidget::tabCloseRequested, this, &MainWindow::recieveTabClose);
     }
 
-    QTreeWidget *newTree = new QTreeWidget();
+    customTreeWidget *newTree = new customTreeWidget(filePath);
     newTree->setColumnCount(3);
     newTree->setSelectionBehavior(QAbstractItemView::SelectRows);
     newTree->setDropIndicatorShown(false);

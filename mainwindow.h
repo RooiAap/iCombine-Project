@@ -71,6 +71,7 @@ private slots:
     void on_actionAbout_triggered();
 
     void recieveDragNDropComplete(QStringList files);
+    void recieveTabChanged(int index);
     void recieveTabClose(int index);
 
 signals:

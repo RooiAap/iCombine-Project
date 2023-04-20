@@ -13,6 +13,7 @@ SOURCES += \
     aboutdialog.cpp \
     archiveinoutdialog.cpp \
     archiveparser.cpp \
+    customtreewidget.cpp \
     filenotpopup.cpp \
     loadingpopup.cpp \
     main.cpp \
@@ -22,6 +23,7 @@ HEADERS += \
     aboutdialog.h \
     archiveinoutdialog.h \
     archiveparser.h \
+    customtreewidget.h \
     filenotpopup.h \
     loadingpopup.h \
     mainwindow.h \
