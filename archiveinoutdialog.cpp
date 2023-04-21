@@ -1,7 +1,6 @@
 #include "archiveinoutdialog.h"
 #include "ui_archiveinoutdialog.h"
 
-#include <QString>
 #include <QDir>
 #include <QFile>
 #include <QFileDialog>
@@ -10,12 +9,14 @@
 
 #include <filenotpopup.h>
 
-archiveInOutDialog::archiveInOutDialog(QWidget *parent) :
+archiveInOutDialog::archiveInOutDialog(QWidget *parent, QString fileFilter) :
     QDialog(parent),
     ui(new Ui::archiveInOutDialog)
 {
     ui->setupUi(this);
     this->setWindowTitle("");
+
+    this->fileFilter = fileFilter;
 
     connect(this->ui->inputArchivePathEntry, &QLineEdit::textChanged, this, &archiveInOutDialog::checkDataValidity);
 }
@@ -27,7 +28,7 @@ archiveInOutDialog::~archiveInOutDialog()
 
 void archiveInOutDialog::on_inputFileChooser_clicked()
 {
-    QString filename = QFileDialog::getOpenFileName(this);
+    QString filename = QFileDialog::getOpenFileName(this, "Load File", QString(), this->fileFilter);
     this->ui->inputArchivePathEntry->clear();
     this->ui->inputArchivePathEntry->insert(filename);
 }

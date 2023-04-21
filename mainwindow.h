@@ -53,6 +53,8 @@ private:
     QString filePath;
     QString outputPath;
 
+    QStringList acceptedTypes;
+
     QLabel *statusLabel;
     QLabel *picLabel;
     QLabel *guideLabel;

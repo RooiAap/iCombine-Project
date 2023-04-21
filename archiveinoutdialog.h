@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <QPushButton>
+#include <QString>
 
 namespace Ui {
 class archiveInOutDialog;
@@ -13,10 +14,15 @@ class archiveInOutDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit archiveInOutDialog(QWidget *parent = nullptr);
+    explicit archiveInOutDialog(QWidget *parent = nullptr, QString fileFilter = QString());
     ~archiveInOutDialog();
 
     QPushButton* getOkButton() const;
+
+private:
+    Ui::archiveInOutDialog *ui;
+
+    QString fileFilter;
 
 private slots:
     void on_inputFileChooser_clicked();
@@ -29,9 +35,6 @@ protected slots:
 
 signals:
     void sendPaths(QString archive);
-
-private:
-    Ui::archiveInOutDialog *ui;
 };
 
 #endif // ARCHIVEINOUTDIALOG_H

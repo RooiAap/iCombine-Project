@@ -3,6 +3,7 @@
 #include "ui_mainwindow.h"
 
 #include <QFileDialog>
+#include <QFile>
 #include <QDir>
 #include <QList>
 #include <QPushButton>
@@ -31,6 +32,8 @@ MainWindow::MainWindow(QWidget *parent)
     this->setAcceptDrops(true);
 
     this->tabWidget = nullptr;
+
+    this->acceptedTypes << "tpp";
 
     QPixmap map(":/img/img/file_open_img.png");
     this->picLabel = new QLabel(this);
@@ -155,14 +158,27 @@ void MainWindow::mouseDoubleClickEvent(QMouseEvent *e)
 void MainWindow::dragEnterEvent(QDragEnterEvent *e)
 {
     if(e->mimeData()->hasUrls()){
+        foreach(const auto &url, e->mimeData()->urls()){
+            if(url.isLocalFile()){
+                QFileInfo fileInfo(url.toLocalFile());
+                if(!this->acceptedTypes.contains(fileInfo.suffix().trimmed())){
+                    e->setDropAction(Qt::IgnoreAction);
+                    return;
+                }
+            }else{
+                e->setDropAction(Qt::IgnoreAction);
+                return;
+            }
+        }
         e->acceptProposedAction();
     }
 }
 
 void MainWindow::dropEvent(QDropEvent *e)
 {
-    QStringList acceptedTypes;
-    acceptedTypes << "tpp";
+    if(e->dropAction() == Qt::IgnoreAction){
+        return;
+    }
 
     QStringList validDroppedFiles;
     foreach(const auto &url, e->mimeData()->urls()){
@@ -179,7 +195,13 @@ void MainWindow::dropEvent(QDropEvent *e)
 
 void MainWindow::loadFile()
 {
-    this->inOut = new archiveInOutDialog(this);
+    QString fileFilter = "Archives (";
+    foreach(const QString &type, this->acceptedTypes){
+        fileFilter = fileFilter + ("*." + type + " ");
+    }
+    fileFilter = fileFilter + ")";
+
+    this->inOut = new archiveInOutDialog(this, fileFilter);
     connect(this->inOut, &archiveInOutDialog::sendPaths, this, &MainWindow::receivePaths);
     this->inOut->exec();
     delete this->inOut;
@@ -217,7 +239,11 @@ void MainWindow::loadFile(QString filePath)
                                     "   border-left: 0px;"
                                     "}");
     newTree->setHeaderHidden(true);
-    this->tabWidget->addTab(newTree, info.baseName());
+
+    std::string s = info.fileName().toStdString();
+    size_t pos = s.find_last_of('.', std::string::npos);
+
+    this->tabWidget->addTab(newTree, QString::fromStdString(s.substr(0, pos)));
     this->tabWidget->setCurrentWidget(newTree);
 
     this->statusLabel->setText(filePath);
