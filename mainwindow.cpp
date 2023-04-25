@@ -228,7 +228,7 @@ void MainWindow::loadFile(QString filePath)
     }
 
     customTreeWidget *newTree = new customTreeWidget(filePath);
-    newTree->setColumnCount(3);
+    newTree->setColumnCount(5);
     newTree->setSelectionBehavior(QAbstractItemView::SelectRows);
     newTree->setDropIndicatorShown(false);
     newTree->setStyleSheet("QHeaderView::section {"
@@ -294,43 +294,24 @@ void MainWindow::extract(MainWindow *window, QString filePath, QString outputPat
     emit window->sendExtractFinished();
 }
 
-void MainWindow::addTreeRoot(QTreeWidget *tree, const test &t)
-{
-    QTreeWidgetItem *treeItem = new QTreeWidgetItem(tree);
-
-    treeItem->setText(0, QString::fromStdString(t.test_name));
-
-    for(const auto &item: t.results){
-        this->addTreeChild(tree, treeItem, item);
-    }
-    treeItem->setExpanded(true);
-}
-
-void MainWindow::addTreeChild(QTreeWidget *tree, QTreeWidgetItem *parent, const test_result &r)
-{
-    QTreeWidgetItem *treeItem = new QTreeWidgetItem(parent);
-
-    for(int i = 0; i < tree->columnCount(); i++){
-        treeItem->setBackground(i, QBrush(QColor(238, 240, 241)));
-    }
-
-    treeItem->setText(0, QString::fromStdString(r.test_date));
-    treeItem->setText(1, QString::fromStdString(r.test_time));
-    treeItem->setText(2, QString::fromStdString(r.test_outcome));
-    if(r.test_outcome == "passed"){
-        treeItem->setIcon(2, QIcon(":/img/img/check_icon.svg"));
-    }else if(r.test_outcome == "inconclusive"){
-        treeItem->setIcon(2, QIcon(":/img/img/minus_icon.svg"));
-    }else{
-        treeItem->setIcon(2, QIcon(":/img/img/cross_icon.svg"));
-    }
-}
-
 void MainWindow::addTreeGroup(QTreeWidget *tree, const group &g)
 {
-    QTreeWidgetItem *treeItem = new QTreeWidgetItem(tree);
+    int total_tests, tests_passed;
+    total_tests = tests_passed = 0;
+    for(const auto &t: g.tests){
+        total_tests += t.results.size();
+        for(const auto &r: t.results){
+            if(r.test_outcome == "passed"){
+                tests_passed++;
+            }
+        }
+    }
+    double pass_rate = ((tests_passed * 1.0) / (total_tests * 1.0)) * 100.0;
 
+    QTreeWidgetItem *treeItem = new QTreeWidgetItem(tree);
     treeItem->setText(0, QString::fromStdString(g.group_name));
+    treeItem->setText(3, (QString::number(total_tests) + " Tests"));
+    treeItem->setText(4, (QString::number(pass_rate, 'f', 2) + "% Pass"));
 
     for(const auto &t: g.tests){
         this->addTreeTest(tree, treeItem, t);
@@ -341,6 +322,10 @@ void MainWindow::addTreeGroup(QTreeWidget *tree, const group &g)
 void MainWindow::addTreeTest(QTreeWidget *tree, QTreeWidgetItem *parent, const test &t)
 {
     QTreeWidgetItem *treeItem = new QTreeWidgetItem(parent);
+
+    for(int i = 0; i < tree->columnCount(); i++){
+        treeItem->setBackground(i, QBrush(QColor(226, 230, 232)));
+    }
 
     treeItem->setText(0, QString::fromStdString(t.test_name));
 

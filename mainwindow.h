@@ -43,9 +43,6 @@ private:
     void loadFile(QString filePath);
     static void extract(MainWindow *window, QString filePath, QString outputPath, std::vector<group> *results);
 
-    void addTreeRoot(QTreeWidget *tree, const test &t);
-    void addTreeChild(QTreeWidget *tree, QTreeWidgetItem *parent, const test_result &r);
-
     void addTreeGroup(QTreeWidget *tree, const group &g);
     void addTreeTest(QTreeWidget *tree, QTreeWidgetItem *parent, const test &t);
     void addTreeTestResult(QTreeWidget *tree, QTreeWidgetItem *parent, const test_result &r);
