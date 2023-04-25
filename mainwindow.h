@@ -14,10 +14,9 @@
 #include <QTreeWidget>
 #include <QTabWidget>
 
-#include <test_case_types.h>
-#include <archiveinoutdialog.h>
-#include <loadingpopup.h>
-#include <customtreewidget.h>
+#include "test_case_types.h"
+#include "archiveinoutdialog.h"
+#include "loadingpopup.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -81,6 +80,7 @@ private slots:
 signals:
     void sendExtractFinished();
     void sendDragNDropComplete(QStringList files);
+    void sendTreeOutputFolder(QString folder);
 };
 
 #endif // MAINWINDOW_H

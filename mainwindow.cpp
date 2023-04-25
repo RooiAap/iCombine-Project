@@ -15,9 +15,9 @@
 
 #include <filesystem>
 
-#include <aboutdialog.h>
-
-#include <archiveparser.h>
+#include "aboutdialog.h"
+#include "archiveparser.h"
+#include "customtreewidget.h"
 
 #include "zip_file.hpp"
 
@@ -62,7 +62,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     this->filePath = "";
 
-    connect(this, &MainWindow::sendDragNDropComplete, this, &MainWindow::recieveDragNDropComplete);    
+    connect(this, &MainWindow::sendDragNDropComplete, this, &MainWindow::recieveDragNDropComplete);
 
     this->outputPath = QDir::tempPath() + "/icombine";
     QDir dir;
@@ -117,7 +117,7 @@ void MainWindow::recieveTabChanged(int index)
 {
     if(index >= 0){
         customTreeWidget *tree = static_cast<customTreeWidget*>(this->tabWidget->widget(index));
-        this->statusLabel->setText(tree->getPath());
+        this->statusLabel->setText(tree->getFilePath());
     }
 }
 
@@ -228,7 +228,7 @@ void MainWindow::loadFile(QString filePath)
     }
 
     customTreeWidget *newTree = new customTreeWidget(filePath);
-    newTree->setColumnCount(5);
+    newTree->setColumnCount(6);
     newTree->setSelectionBehavior(QAbstractItemView::SelectRows);
     newTree->setDropIndicatorShown(false);
     newTree->setStyleSheet("QHeaderView::section {"
@@ -248,6 +248,7 @@ void MainWindow::loadFile(QString filePath)
     this->statusLabel->setText(filePath);
 
     std::vector<group> *results = new std::vector<group>();
+    connect(this, &MainWindow::sendTreeOutputFolder, newTree, &customTreeWidget::receiveTreeOutputFolder);
     QFuture<void> future = QtConcurrent::run(&MainWindow::extract, this, filePath, this->outputPath, results);
 
     this->loading_pop_up = new loadingPopUp(this);
@@ -284,7 +285,7 @@ void MainWindow::extract(MainWindow *window, QString filePath, QString outputPat
 
     archiveParser parser(zip_extract_p.string());
     qDebug() << "Extract finished";
-
+    emit window->sendTreeOutputFolder(QString::fromStdString(parser.getDirectoryPath()));
     qDebug() << "\n";
     std::vector<group> r = parser.parse();
     for(const auto &item: r){
@@ -296,22 +297,23 @@ void MainWindow::extract(MainWindow *window, QString filePath, QString outputPat
 
 void MainWindow::addTreeGroup(QTreeWidget *tree, const group &g)
 {
-    int total_tests, tests_passed;
-    total_tests = tests_passed = 0;
+    int total_tests, tests_passed, tests_failed;
+    total_tests = tests_failed = tests_passed = 0;
+
     for(const auto &t: g.tests){
-        total_tests += t.results.size();
-        for(const auto &r: t.results){
-            if(r.test_outcome == "passed"){
-                tests_passed++;
-            }
+        if(t.results.back().test_outcome == "passed"){
+            tests_passed++;
+        }else if(t.results.back().test_outcome == "failed"){
+            tests_failed++;
         }
+        total_tests++;
     }
-    double pass_rate = ((tests_passed * 1.0) / (total_tests * 1.0)) * 100.0;
 
     QTreeWidgetItem *treeItem = new QTreeWidgetItem(tree);
     treeItem->setText(0, QString::fromStdString(g.group_name));
-    treeItem->setText(3, (QString::number(total_tests) + " Tests"));
-    treeItem->setText(4, (QString::number(pass_rate, 'f', 2) + "% Pass"));
+    treeItem->setText(3, (QString::number(total_tests) + " Total Tests"));
+    treeItem->setText(4, (QString::number(tests_failed) + " Tests Failed"));
+    treeItem->setText(5, (QString::number(tests_passed) + " Tests Passed"));
 
     for(const auto &t: g.tests){
         this->addTreeTest(tree, treeItem, t);

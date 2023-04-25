@@ -7,7 +7,7 @@
 #include <QLineEdit>
 #include <QPixmap>
 
-#include <filenotpopup.h>
+#include "filenotpopup.h"
 
 archiveInOutDialog::archiveInOutDialog(QWidget *parent, QString fileFilter) :
     QDialog(parent),

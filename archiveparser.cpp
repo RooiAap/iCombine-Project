@@ -21,8 +21,7 @@ archiveParser::archiveParser(std::string archiveDirectoryPath)
 
 archiveParser::~archiveParser()
 {
-    QDir dir(QString::fromStdString(this->archiveDirectoryPath));
-    dir.removeRecursively();
+
 }
 
 void archiveParser::setDirectoryPath(const std::string archiveDirectoryPath)
@@ -40,6 +39,9 @@ std::vector<group> archiveParser::parse()
     std::vector<test> test_cases;
     for (const auto& entry : fs::directory_iterator(fs::path(this->archiveDirectoryPath + "\\BttFiles\\BttTestResults\\reports"))) {
         if (!isalpha(entry.path().filename().string()[0]) || !fs::is_directory(entry.path())) {
+            continue;
+        }
+        if(entry.path().filename().string() == "ApduInterpretation"){
             continue;
         }
         test t;

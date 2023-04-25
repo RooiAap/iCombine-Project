@@ -6,7 +6,7 @@
 #include <vector>
 #include <filesystem>
 
-#include <test_case_types.h>
+#include "test_case_types.h"
 
 namespace fs = std::filesystem;
 

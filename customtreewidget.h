@@ -16,10 +16,17 @@ public:
     customTreeWidget(QString path, QWidget *parent=nullptr);
     ~customTreeWidget();
 
-    QString getPath() const;
+    void setOutputPath(QString path);
+
+    QString getFilePath() const;
+    QString getOutputPath() const;
 
 private:
     QString filePath;
+    QString outputPath;
+
+public slots:
+    void receiveTreeOutputFolder(QString folder);
 };
 
 #endif // CUSTOMTREEWIDGET_H
