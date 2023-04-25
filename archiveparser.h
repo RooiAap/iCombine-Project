@@ -19,7 +19,7 @@ public:
 
     void setDirectoryPath(const std::string archiveDirectoryPath);
     std::string getDirectoryPath() const;
-    std::vector<test> parse();
+    std::vector<group> parse();
 
 private:
     std::string archiveDirectoryPath;

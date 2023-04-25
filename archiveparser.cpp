@@ -6,6 +6,9 @@
 
 #include <fstream>
 
+#include <set>
+#include <regex>
+
 archiveParser::archiveParser()
 {
     this->archiveDirectoryPath = "";
@@ -32,7 +35,7 @@ std::string archiveParser::getDirectoryPath() const
     return this->archiveDirectoryPath;
 }
 
-std::vector<test> archiveParser::parse()
+std::vector<group> archiveParser::parse()
 {
     std::vector<test> test_cases;
     for (const auto& entry : fs::directory_iterator(fs::path(this->archiveDirectoryPath + "\\BttFiles\\BttTestResults\\reports"))) {
@@ -52,15 +55,36 @@ std::vector<test> archiveParser::parse()
         }
     }
 
-    for (const auto& test_case : test_cases) {
-        qDebug().noquote() << QString::fromStdString(test_case.test_name);
-        for (const auto& test : test_case.results) {
-            qDebug().noquote() << QString::fromStdString((test.test_date + " " + test.test_time + " " + test.test_outcome));
+    std::set<std::string> group_names;
+    for(const auto &t: test_cases){
+        std::string group = "";
+        for(const char &letter: t.test_name){
+            if(letter == '_' || letter == '.' || std::isdigit(letter)){
+                break;
+            }
+            group += letter;
         }
-        qDebug() << "\n";
+        group_names.insert(group);
     }
 
-    return test_cases;
+    std::vector<group> groups;
+    for(const auto &g: group_names){
+        group new_group;
+        new_group.group_name = g;
+
+        std::smatch m;
+        std::regex pattern(g);
+        for(auto &t: test_cases){
+            if(!t.used && std::regex_search(t.test_name, m, pattern)){
+                new_group.tests.push_back(t);
+                t.used = true;
+
+            }
+        }
+        groups.push_back(new_group);
+    }
+
+    return groups;
 }
 
 test_result archiveParser::check_test(fs::path test)
@@ -104,7 +128,7 @@ test_result archiveParser::check_test(fs::path test)
         data_segments.push_back(segment);
     }
 
-    test_result r;
+    test_result r;    
     std::string date_time = data_segments.at(4);
     std::stringstream stream2(date_time);
     std::vector<std::string> date_time_segments;
@@ -112,6 +136,7 @@ test_result archiveParser::check_test(fs::path test)
     while(std::getline(stream2, seg, ' ')){
         date_time_segments.push_back(seg);
     }
+    r.file = fs::absolute(filename).string();
     r.test_date = date_time_segments.at(0);
     r.test_time = date_time_segments.at(1);
     r.test_outcome = data_segments.at(2);

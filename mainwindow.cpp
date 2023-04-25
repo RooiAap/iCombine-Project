@@ -16,7 +16,6 @@
 #include <filesystem>
 
 #include <aboutdialog.h>
-#include <customtreewidget.h>
 
 #include <archiveparser.h>
 
@@ -116,7 +115,7 @@ void MainWindow::recieveDragNDropComplete(QStringList files)
 
 void MainWindow::recieveTabChanged(int index)
 {
-    if(index > 0){
+    if(index >= 0){
         customTreeWidget *tree = static_cast<customTreeWidget*>(this->tabWidget->widget(index));
         this->statusLabel->setText(tree->getPath());
     }
@@ -248,7 +247,7 @@ void MainWindow::loadFile(QString filePath)
 
     this->statusLabel->setText(filePath);
 
-    std::vector<test> *results = new std::vector<test>();
+    std::vector<group> *results = new std::vector<group>();
     QFuture<void> future = QtConcurrent::run(&MainWindow::extract, this, filePath, this->outputPath, results);
 
     this->loading_pop_up = new loadingPopUp(this);
@@ -259,14 +258,14 @@ void MainWindow::loadFile(QString filePath)
     this->loading_pop_up->stopSpinner();
     delete this->loading_pop_up;
 
-    for(const auto &test: *results){
-        this->addTreeRoot(newTree, test);
+    for(const auto &g: *results){
+        this->addTreeGroup(newTree, g);
     }
     newTree->resizeColumnToContents(0);
     delete results;
 }
 
-void MainWindow::extract(MainWindow *window, QString filePath, QString outputPath, std::vector<test> *results)
+void MainWindow::extract(MainWindow *window, QString filePath, QString outputPath, std::vector<group> *results)
 {
     fs::path zip_p(fs::absolute(filePath.toStdString()));
     fs::path zip_extract_p((outputPath.toStdString() + "/" + zip_p.stem().string()));
@@ -287,7 +286,7 @@ void MainWindow::extract(MainWindow *window, QString filePath, QString outputPat
     qDebug() << "Extract finished";
 
     qDebug() << "\n";
-    std::vector<test> r = parser.parse();
+    std::vector<group> r = parser.parse();
     for(const auto &item: r){
         results->push_back(item);
     }
@@ -308,6 +307,50 @@ void MainWindow::addTreeRoot(QTreeWidget *tree, const test &t)
 }
 
 void MainWindow::addTreeChild(QTreeWidget *tree, QTreeWidgetItem *parent, const test_result &r)
+{
+    QTreeWidgetItem *treeItem = new QTreeWidgetItem(parent);
+
+    for(int i = 0; i < tree->columnCount(); i++){
+        treeItem->setBackground(i, QBrush(QColor(238, 240, 241)));
+    }
+
+    treeItem->setText(0, QString::fromStdString(r.test_date));
+    treeItem->setText(1, QString::fromStdString(r.test_time));
+    treeItem->setText(2, QString::fromStdString(r.test_outcome));
+    if(r.test_outcome == "passed"){
+        treeItem->setIcon(2, QIcon(":/img/img/check_icon.svg"));
+    }else if(r.test_outcome == "inconclusive"){
+        treeItem->setIcon(2, QIcon(":/img/img/minus_icon.svg"));
+    }else{
+        treeItem->setIcon(2, QIcon(":/img/img/cross_icon.svg"));
+    }
+}
+
+void MainWindow::addTreeGroup(QTreeWidget *tree, const group &g)
+{
+    QTreeWidgetItem *treeItem = new QTreeWidgetItem(tree);
+
+    treeItem->setText(0, QString::fromStdString(g.group_name));
+
+    for(const auto &t: g.tests){
+        this->addTreeTest(tree, treeItem, t);
+    }
+    treeItem->setExpanded(true);
+}
+
+void MainWindow::addTreeTest(QTreeWidget *tree, QTreeWidgetItem *parent, const test &t)
+{
+    QTreeWidgetItem *treeItem = new QTreeWidgetItem(parent);
+
+    treeItem->setText(0, QString::fromStdString(t.test_name));
+
+    for(const auto &r: t.results){
+        this->addTreeTestResult(tree, treeItem, r);
+    }
+    treeItem->setExpanded(true);
+}
+
+void MainWindow::addTreeTestResult(QTreeWidget *tree, QTreeWidgetItem *parent, const test_result &r)
 {
     QTreeWidgetItem *treeItem = new QTreeWidgetItem(parent);
 

@@ -14,6 +14,7 @@ class customTreeWidget : public QTreeWidget
     Q_OBJECT
 public:
     customTreeWidget(QString path, QWidget *parent=nullptr);
+    ~customTreeWidget();
 
     QString getPath() const;
 
