@@ -12,12 +12,14 @@
 #include <QBrush>
 #include <QColor>
 #include <QPainter>
+#include <QObjectList>
 
 #include <filesystem>
 
 #include "aboutdialog.h"
 #include "archiveparser.h"
 #include "customtreewidget.h"
+#include "customtreewidgetitem.h"
 
 #include "zip_file.hpp"
 
@@ -106,6 +108,33 @@ void MainWindow::on_actionAbout_triggered()
     abt.exec();
 }
 
+void MainWindow::on_actionExpand_All_triggered()
+{
+    if(this->tabWidget != nullptr){
+        if(this->tabWidget->currentWidget() != nullptr){
+            QTreeWidget *tree = static_cast<QTreeWidget*>(this->tabWidget->currentWidget());
+            for(int i = 0; i < tree->topLevelItemCount(); i++){
+                QTreeWidgetItem *item = tree->topLevelItem(i);
+                item->setExpanded(true);
+            }
+        }
+    }
+}
+
+
+void MainWindow::on_actionCollapse_All_triggered()
+{
+    if(this->tabWidget != nullptr){
+        if(this->tabWidget->currentWidget() != nullptr){
+            QTreeWidget *tree = static_cast<QTreeWidget*>(this->tabWidget->currentWidget());
+            for(int i = 0; i < tree->topLevelItemCount(); i++){
+                QTreeWidgetItem *item = tree->topLevelItem(i);
+                item->setExpanded(false);
+            }
+        }
+    }
+}
+
 void MainWindow::recieveDragNDropComplete(QStringList files)
 {
     foreach(const auto &file, files){
@@ -128,6 +157,8 @@ void MainWindow::recieveTabClose(int index)
         delete this->tabWidget;
         this->tabWidget = nullptr;
         this->statusLabel->setText("No File");
+        this->ui->actionExpand_All->setEnabled(false);
+        this->ui->actionCollapse_All->setEnabled(false);
     }
 }
 
@@ -225,6 +256,9 @@ void MainWindow::loadFile(QString filePath)
         this->setCentralWidget(this->tabWidget);
         connect(this->tabWidget, &QTabWidget::currentChanged, this, &MainWindow::recieveTabChanged);
         connect(this->tabWidget, &QTabWidget::tabCloseRequested, this, &MainWindow::recieveTabClose);
+
+        this->ui->actionExpand_All->setEnabled(true);
+        this->ui->actionCollapse_All->setEnabled(true);
     }
 
     customTreeWidget *newTree = new customTreeWidget(filePath);
@@ -238,6 +272,8 @@ void MainWindow::loadFile(QString filePath)
                                     "   border-left: 0px;"
                                     "}");
     newTree->setHeaderHidden(true);
+    newTree->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(newTree, &customTreeWidget::customContextMenuRequested, newTree, &customTreeWidget::receiveContextMenuRequest);
 
     std::string s = info.fileName().toStdString();
     size_t pos = s.find_last_of('.', std::string::npos);
@@ -339,7 +375,7 @@ void MainWindow::addTreeTest(QTreeWidget *tree, QTreeWidgetItem *parent, const t
 
 void MainWindow::addTreeTestResult(QTreeWidget *tree, QTreeWidgetItem *parent, const test_result &r)
 {
-    QTreeWidgetItem *treeItem = new QTreeWidgetItem(parent);
+    customTreeWidgetItem *treeItem = new customTreeWidgetItem(parent, QString::fromStdString(r.file));
 
     for(int i = 0; i < tree->columnCount(); i++){
         treeItem->setBackground(i, QBrush(QColor(238, 240, 241)));

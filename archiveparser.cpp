@@ -138,7 +138,7 @@ test_result archiveParser::check_test(fs::path test)
     while(std::getline(stream2, seg, ' ')){
         date_time_segments.push_back(seg);
     }
-    r.file = fs::absolute(filename).string();
+    r.file = fs::absolute(filename).lexically_normal().string();
     r.test_date = date_time_segments.at(0);
     r.test_time = date_time_segments.at(1);
     r.test_outcome = data_segments.at(2);

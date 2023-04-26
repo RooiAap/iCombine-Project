@@ -8,6 +8,7 @@
 #include <QWidget>
 
 #include <QString>
+#include <QPoint>
 
 class customTreeWidget : public QTreeWidget
 {
@@ -25,8 +26,13 @@ private:
     QString filePath;
     QString outputPath;
 
+    QPoint contextMenuPosition;
+
 public slots:
     void receiveTreeOutputFolder(QString folder);
+    void receiveContextMenuRequest(QPoint pos);
+    void receiveShowFile();
+    void receiveShowFolder();
 };
 
 #endif // CUSTOMTREEWIDGET_H
