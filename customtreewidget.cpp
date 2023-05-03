@@ -2,6 +2,7 @@
 #include "customtreewidget.h"
 #include "customtreewidgetitem.h"
 #include "grouptreewidgetitem.h"
+#include "exportcompletebox.h"
 
 #include <QDir>
 #include <QFile>
@@ -13,7 +14,6 @@
 #include <QProcess>
 #include <QDebug>
 #include <QTextStream>
-#include <QMessageBox>
 
 #include <filesystem>
 
@@ -103,9 +103,6 @@ void customTreeWidget::receiveExportData()
         exportFile.close();
     }
 
-    QMessageBox box(this);
-    box.setWindowTitle("Export");
-    box.setText("Export Complete!");
-    box.setIconPixmap(QPixmap(":/img/img/check_icon.svg"));
+    exportCompleteBox box(this);
     box.exec();
 }
