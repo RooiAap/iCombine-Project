@@ -19,6 +19,7 @@ SOURCES += \
     aboutdialog.cpp \
     archiveinoutdialog.cpp \
     archiveparser.cpp \
+    collectiontreewidgetitem.cpp \
     customtreewidget.cpp \
     customtreewidgetitem.cpp \
     exportcompletebox.cpp \
@@ -32,6 +33,7 @@ HEADERS += \
     aboutdialog.h \
     archiveinoutdialog.h \
     archiveparser.h \
+    collectiontreewidgetitem.h \
     customtreewidget.h \
     customtreewidgetitem.h \
     exportcompletebox.h \

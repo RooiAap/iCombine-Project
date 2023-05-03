@@ -40,7 +40,7 @@ private:
 
     void loadFile();
     void loadFile(QString filePath);
-    static void extract(MainWindow *window, QString filePath, QString outputPath, std::vector<group> *results);
+    static void extract(MainWindow *window, QString filePath, QString outputPath, std::vector<test> *results);
 
     void addTreeGroup(QTreeWidget *tree, const group &g);
     void addTreeCollection(QTreeWidget *tree, QTreeWidgetItem *parent, const card_collection &c);

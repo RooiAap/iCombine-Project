@@ -15,6 +15,7 @@ public:
     ~groupTreeWidgetItem();
 
     group getCardGroup() const;
+
     int getTotalTests() const;
     int getTestsPassed() const;
     int getTestsFailed() const;

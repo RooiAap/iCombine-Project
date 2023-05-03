@@ -12,16 +12,16 @@
 #include <QBrush>
 #include <QColor>
 #include <QPainter>
-#include <QObjectList>
-#include <QMessageBox>
 
 #include <filesystem>
+#include <regex>
 
 #include "aboutdialog.h"
 #include "archiveparser.h"
 #include "customtreewidget.h"
 #include "customtreewidgetitem.h"
 #include "grouptreewidgetitem.h"
+#include "collectiontreewidgetitem.h"
 #include "exportcompletebox.h"
 
 #include "zip_file.hpp"
@@ -116,6 +116,9 @@ void MainWindow::on_actionExport_All_triggered()
     customTreeWidget *tree = static_cast<customTreeWidget*>(this->tabWidget->currentWidget());
 
     QString filename = QFileDialog::getSaveFileName(this, "Export Data");
+    if(filename.length() == 0){
+        return;
+    }
 
     QFile exportFile(filename);
     if(exportFile.open(QIODevice::WriteOnly)){
@@ -141,8 +144,15 @@ void MainWindow::on_actionExpand_All_triggered()
         if(this->tabWidget->currentWidget() != nullptr){
             QTreeWidget *tree = static_cast<QTreeWidget*>(this->tabWidget->currentWidget());
             for(int i = 0; i < tree->topLevelItemCount(); i++){
-                QTreeWidgetItem *item = tree->topLevelItem(i);
+                QTreeWidgetItem *item = tree->topLevelItem(i);                
                 item->setExpanded(true);
+                for(int j = 0; j < item->childCount(); j++){
+                    QTreeWidgetItem *child = item->child(j);
+                    child->setExpanded(true);
+                    for(int k = 0; k < child->childCount(); k++){
+                        child->child(k)->setExpanded(true);
+                    }
+                }
             }
         }
     }
@@ -157,6 +167,13 @@ void MainWindow::on_actionCollapse_All_triggered()
             for(int i = 0; i < tree->topLevelItemCount(); i++){
                 QTreeWidgetItem *item = tree->topLevelItem(i);
                 item->setExpanded(false);
+                for(int j = 0; j < item->childCount(); j++){
+                    QTreeWidgetItem *child = item->child(j);
+                    child->setExpanded(false);
+                    for(int k = 0; k < child->childCount(); k++){
+                        child->child(k)->setExpanded(false);
+                    }
+                }
             }
         }
     }
@@ -312,7 +329,7 @@ void MainWindow::loadFile(QString filePath)
 
     this->statusLabel->setText(filePath);
 
-    std::vector<group> *results = new std::vector<group>();
+    std::vector<test> *results = new std::vector<test>();
     connect(this, &MainWindow::sendTreeOutputFolder, newTree, &customTreeWidget::receiveTreeOutputFolder);
     QFuture<void> future = QtConcurrent::run(&MainWindow::extract, this, filePath, this->outputPath, results);
 
@@ -324,14 +341,149 @@ void MainWindow::loadFile(QString filePath)
     this->loading_pop_up->stopSpinner();
     delete this->loading_pop_up;
 
-    for(const auto &g: *results){
+    group mastercard;
+    mastercard.group_name = "MASTERCARD";
+    mastercard.contact.collection_name = "Contact";
+    mastercard.contactless.collection_name = "Contactless";
+    std::regex mastercard_contact_pattern("(M-TIP)");
+    std::regex mastercard_contactless_pattern("(MCD|MCM|MSI|COM)");
+    for(auto &t: *results){
+        if(!t.used){
+            if(std::regex_search(t.test_name, mastercard_contact_pattern)){
+                mastercard.contact.tests.push_back(t);
+                t.used = true;
+            }else if(std::regex_search(t.test_name, mastercard_contactless_pattern)){
+                mastercard.contactless.tests.push_back(t);
+                t.used = true;
+            }
+        }else{
+            continue;
+        }
+    }
+
+    group visa;
+    visa.group_name = "VISA";
+    visa.contact.collection_name = "Contact";
+    visa.contactless.collection_name = "Contactless";
+    std::regex visa_contact_pattern("(VISA\.TC\.0)");
+    std::regex visa_contactless_pattern("(VISA\.TC\.1)");
+    for(auto &t: *results){
+        if(!t.used){
+            if(std::regex_search(t.test_name, visa_contact_pattern)){
+                visa.contact.tests.push_back(t);
+                t.used = true;
+            }else if(std::regex_search(t.test_name, visa_contactless_pattern)){
+                visa.contactless.tests.push_back(t);
+                t.used = true;
+            }
+        }else{
+            continue;
+        }
+    }
+
+    group amex;
+    amex.group_name = "AMEX";
+    amex.contact.collection_name = "Contact";
+    amex.contactless.collection_name = "Contactless";
+    std::regex amex_contact_pattern("(AXP_EMV|AXP_RCP|AXP_MAG)");
+    std::regex amex_contactless_pattern("(AXP_EP)");
+    for(auto &t: *results){
+        if(!t.used){
+            if(std::regex_search(t.test_name, amex_contact_pattern)){
+                amex.contact.tests.push_back(t);
+                t.used = true;
+            }else if(std::regex_search(t.test_name, amex_contactless_pattern)){
+                amex.contactless.tests.push_back(t);
+                t.used = true;
+            }
+        }else{
+            continue;
+        }
+    }
+
+    group diners;
+    diners.group_name = "DINERS/DISCOVER";
+    diners.contact.collection_name = "Contact";
+    diners.contactless.collection_name = "Contactless";
+    std::regex diners_contact_pattern("(DGN_Connect_L3_CT)|(DGN_L3_CT)");
+    std::regex diners_contactless_pattern("(DGN_Connect_L3_CL)|(DGN_L3_CL)");
+    for(auto &t: *results){
+        if(!t.used){
+            if(std::regex_search(t.test_name, diners_contact_pattern)){
+                diners.contact.tests.push_back(t);
+                t.used = true;
+            }else if(std::regex_search(t.test_name, diners_contactless_pattern)){
+                diners.contactless.tests.push_back(t);
+                t.used = true;
+            }
+        }else{
+            continue;
+        }
+    }
+    std::regex discover_pattern("TAIS");
+    std::regex discover_contact_pattern("Contact\\\\");
+    std::regex discover_contactless_pattern("Contactless\\\\");
+    for(auto &t: *results){
+        if(!t.used){
+            if(std::regex_search(t.test_name, discover_pattern)){
+                std::string contents;
+                QString filename = QString::fromStdString(t.results.front().file);
+                QFile f(filename);
+                if(f.open(QIODevice::ReadOnly)){
+                    contents = f.readAll().toStdString();
+                    f.close();
+                }
+                if(std::regex_search(contents, discover_contact_pattern)){
+                    diners.contactless.tests.push_back(t);
+                    t.used = true;
+                }else if(std::regex_search(contents, discover_contactless_pattern)){
+                    diners.contact.tests.push_back(t);
+                    t.used = true;
+                }
+            }
+        }
+    }
+
+    group jcb;
+    jcb.group_name = "JCB";
+    jcb.contact.collection_name = "Contact";
+    jcb.contactless.collection_name = "Contactless";
+    std::regex jcb_contact_pattern("Contact\\\\");
+    std::regex jcb_contactless_pattern("Contactless\\\\");
+    for(auto &t: *results){
+        if(!t.used){
+            std::string contents;
+            QString filename = QString::fromStdString(t.results.front().file);
+            if(filename.contains("JCB")){
+                QFile f(filename);
+                if(f.open(QIODevice::ReadOnly)){
+                    contents = f.readAll().toStdString();
+                    f.close();
+                }
+                if(std::regex_search(contents, jcb_contact_pattern)){
+                    jcb.contactless.tests.push_back(t);
+                    t.used = true;
+                }else if(std::regex_search(contents, jcb_contactless_pattern)){
+                    jcb.contact.tests.push_back(t);
+                    t.used = true;
+                }
+            }
+        }else{
+            continue;
+        }
+    }
+
+    std::vector<group> group_results = {mastercard, visa, amex, diners, jcb};
+
+    for(const auto &g: group_results){
         this->addTreeGroup(newTree, g);
     }
     newTree->resizeColumnToContents(0);
+    newTree->resizeColumnToContents(1);
     delete results;
 }
 
-void MainWindow::extract(MainWindow *window, QString filePath, QString outputPath, std::vector<group> *results)
+void MainWindow::extract(MainWindow *window, QString filePath, QString outputPath, std::vector<test> *results)
 {
     fs::path zip_p(fs::absolute(filePath.toStdString()));
     fs::path zip_extract_p((outputPath.toStdString() + "/" + zip_p.stem().string()));
@@ -352,7 +504,7 @@ void MainWindow::extract(MainWindow *window, QString filePath, QString outputPat
     qDebug() << "Extract finished";
     emit window->sendTreeOutputFolder(QString::fromStdString(parser.getDirectoryPath()));
     qDebug() << "\n";
-    std::vector<group> r = parser.parse();
+    std::vector<test> r = parser.parse();
     for(const auto &item: r){
         results->push_back(item);
     }
@@ -378,19 +530,16 @@ void MainWindow::addTreeGroup(QTreeWidget *tree, const group &g)
 
 void MainWindow::addTreeCollection(QTreeWidget *tree, QTreeWidgetItem *parent, const card_collection &c)
 {
-    QTreeWidgetItem *treeItem = new QTreeWidgetItem(parent);
-
-    treeItem->setText(0, QString::fromStdString(c.collection_name));
+    collectionTreeWidgetItem *treeItem = new collectionTreeWidgetItem(c, parent);
 
     for(const auto &t: c.tests){
         this->addTreeTest(tree, treeItem, t);
     }
-    treeItem->setExpanded(true);
 }
 
 void MainWindow::addTreeTest(QTreeWidget *tree, QTreeWidgetItem *parent, const test &t)
 {
-    QTreeWidgetItem *treeItem = new QTreeWidgetItem(parent);
+    QTreeWidgetItem *treeItem = new QTreeWidgetItem(parent, 4);
 
     for(int i = 0; i < tree->columnCount(); i++){
         treeItem->setBackground(i, QBrush(QColor(226, 230, 232)));
@@ -401,7 +550,7 @@ void MainWindow::addTreeTest(QTreeWidget *tree, QTreeWidgetItem *parent, const t
     for(const auto &r: t.results){
         this->addTreeTestResult(tree, treeItem, r);
     }
-    treeItem->setExpanded(true);
+    treeItem->setExpanded(false);
 }
 
 void MainWindow::addTreeTestResult(QTreeWidget *tree, QTreeWidgetItem *parent, const test_result &r)

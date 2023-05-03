@@ -89,6 +89,9 @@ void customTreeWidget::receiveExportData()
     groupTreeWidgetItem *item = static_cast<groupTreeWidgetItem*>(this->itemAt(this->contextMenuPosition));
 
     QString filename = QFileDialog::getSaveFileName(this, "Export Group");
+    if(filename.length() == 0){
+        return;
+    }
 
     QFile exportFile(filename);
     if(exportFile.open(QIODevice::WriteOnly)){

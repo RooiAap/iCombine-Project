@@ -53,6 +53,7 @@
     </property>
     <addaction name="actionExpand_All"/>
     <addaction name="actionCollapse_All"/>
+    <addaction name="separator"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>

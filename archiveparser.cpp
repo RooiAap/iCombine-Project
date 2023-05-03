@@ -34,7 +34,7 @@ std::string archiveParser::getDirectoryPath() const
     return this->archiveDirectoryPath;
 }
 
-std::vector<group> archiveParser::parse()
+std::vector<test> archiveParser::parse()
 {
     std::vector<test> test_cases;
     for (const auto& entry : fs::directory_iterator(fs::path(this->archiveDirectoryPath + "\\BttFiles\\BttTestResults\\reports"))) {
@@ -61,109 +61,7 @@ std::vector<group> archiveParser::parse()
         qDebug().noquote() << QString::fromStdString(t.test_name);
     }
 
-    group mastercard;
-    mastercard.group_name = "MASTERCARD";
-    mastercard.contact.collection_name = "Contact";
-    mastercard.contactless.collection_name = "Contactless";
-    std::regex mastercard_contact_pattern("(M-TIP)");
-    std::regex mastercard_contactless_pattern("(MCD|MCM|MSI|COM)");
-    for(auto &t: test_cases){
-        if(!t.used){
-            if(std::regex_search(t.test_name, mastercard_contact_pattern)){
-                mastercard.contact.tests.push_back(t);
-                t.used = true;
-            }else if(std::regex_search(t.test_name, mastercard_contactless_pattern)){
-                mastercard.contactless.tests.push_back(t);
-                t.used = true;
-            }
-        }else{
-            continue;
-        }
-    }
-
-    group visa;
-    visa.group_name = "VISA";
-    visa.contact.collection_name = "Contact";
-    visa.contactless.collection_name = "Contactless";
-    std::regex visa_contact_pattern("(TC\.0)");
-    std::regex visa_contactless_pattern("(TC\.1)");
-    for(auto &t: test_cases){
-        if(!t.used){
-            if(std::regex_search(t.test_name, visa_contact_pattern)){
-                visa.contact.tests.push_back(t);
-                t.used = true;
-            }else if(std::regex_search(t.test_name, visa_contactless_pattern)){
-                visa.contactless.tests.push_back(t);
-                t.used = true;
-            }
-        }else{
-            continue;
-        }
-    }
-
-    group amex;
-    amex.group_name = "AMEX";
-    amex.contact.collection_name = "Contact";
-    amex.contactless.collection_name = "Contactless";
-    std::regex amex_contact_pattern("(AXP_EMV|AXP_RCP|AXP_MAG)");
-    std::regex amex_contactless_pattern("(AXP_EP)");
-    for(auto &t: test_cases){
-        if(!t.used){
-            if(std::regex_search(t.test_name, amex_contact_pattern)){
-                amex.contact.tests.push_back(t);
-                t.used = true;
-            }else if(std::regex_search(t.test_name, amex_contactless_pattern)){
-                amex.contactless.tests.push_back(t);
-                t.used = true;
-            }
-        }else{
-            continue;
-        }
-    }
-
-    group diners;
-    diners.group_name = "DINERS";
-    diners.contact.collection_name = "Contact";
-    diners.contactless.collection_name = "Contactless";
-    std::regex diners_contact_pattern("(DGN_Connect_L3_CT)");
-    std::regex diners_contactless_pattern("(DGN_Connect_L3_CL)");
-    for(auto &t: test_cases){
-        if(!t.used){
-            if(std::regex_search(t.test_name, diners_contact_pattern)){
-                diners.contact.tests.push_back(t);
-                t.used = true;
-            }else if(std::regex_search(t.test_name, diners_contactless_pattern)){
-                diners.contactless.tests.push_back(t);
-                t.used = true;
-            }
-        }else{
-            continue;
-        }
-    }
-
-    group jcb;
-    jcb.group_name = "JCB";
-    jcb.contact.collection_name = "Contact";
-    jcb.contactless.collection_name = "Contactless";
-    std::regex jcb_contact_pattern("");
-    std::regex jcb_contactless_pattern("");
-    for(auto &t: test_cases){
-        if(!t.used){
-            if(std::regex_search(t.test_name, jcb_contact_pattern)){
-                jcb.contact.tests.push_back(t);
-                t.used = true;
-            }else if(std::regex_search(t.test_name, jcb_contactless_pattern)){
-                jcb.contactless.tests.push_back(t);
-                t.used = true;
-            }
-        }else{
-            continue;
-        }
-    }
-
-    std::vector<group> groups = {mastercard, visa, amex, diners, jcb};
-
-    return groups;
+    return test_cases;
 }
 
 test_result archiveParser::check_test(fs::path test)
@@ -189,7 +87,7 @@ test_result archiveParser::check_test(fs::path test)
         }
     }
 
-    std::string filename = logs.at(0).string();
+    std::string filename = logs.front().string();
 
     std::string file_data;
     std::ifstream log_file(filename);

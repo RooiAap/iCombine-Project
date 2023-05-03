@@ -33,7 +33,7 @@ groupTreeWidgetItem::groupTreeWidgetItem(const group &g, QTreeWidget *parentTree
     this->setText(4, (QString::number(this->tests_passed) + " Tests Passed"));
     this->setText(5, (QString::number(this->tests_failed) + " Tests Failed"));
 
-    this->setExpanded(true);
+    this->setExpanded(false);
 }
 
 groupTreeWidgetItem::~groupTreeWidgetItem()
