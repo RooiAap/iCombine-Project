@@ -21,7 +21,9 @@ SOURCES += \
     archiveparser.cpp \
     customtreewidget.cpp \
     customtreewidgetitem.cpp \
+    exportcompletebox.cpp \
     filenotpopup.cpp \
+    grouptreewidgetitem.cpp \
     loadingpopup.cpp \
     main.cpp \
     mainwindow.cpp
@@ -32,7 +34,9 @@ HEADERS += \
     archiveparser.h \
     customtreewidget.h \
     customtreewidgetitem.h \
+    exportcompletebox.h \
     filenotpopup.h \
+    grouptreewidgetitem.h \
     loadingpopup.h \
     mainwindow.h \
     test_case_types.h \
@@ -42,6 +46,7 @@ HEADERS += \
 FORMS += \
     aboutdialog.ui \
     archiveinoutdialog.ui \
+    exportcompletebox.ui \
     filenotpopup.ui \
     loadingpopup.ui \
     mainwindow.ui

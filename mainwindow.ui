@@ -37,6 +37,7 @@
      <string>File</string>
     </property>
     <addaction name="actionLoad"/>
+    <addaction name="actionExport_All"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
@@ -63,11 +64,6 @@
     <string>Load...</string>
    </property>
   </action>
-  <action name="actionExit">
-   <property name="text">
-    <string>Exit...</string>
-   </property>
-  </action>
   <action name="actionAbout">
    <property name="text">
     <string>About</string>
@@ -87,6 +83,19 @@
    </property>
    <property name="text">
     <string>Collapse All...</string>
+   </property>
+  </action>
+  <action name="actionExport_All">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Export All...</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
    </property>
   </action>
  </widget>

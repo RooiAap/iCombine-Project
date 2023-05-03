@@ -21,10 +21,17 @@ typedef struct test
     bool used = false;
 }test;
 
+typedef struct card_collection
+{
+    std::string collection_name;
+    std::vector<test> tests;
+}card_collection;
+
 typedef struct group
 {
     std::string group_name;
-    std::vector<test> tests;
+    card_collection contact;
+    card_collection contactless;
 }group;
 
 #endif // TEST_CASE_TYPES_H

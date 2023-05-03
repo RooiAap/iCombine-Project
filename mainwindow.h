@@ -43,6 +43,7 @@ private:
     static void extract(MainWindow *window, QString filePath, QString outputPath, std::vector<group> *results);
 
     void addTreeGroup(QTreeWidget *tree, const group &g);
+    void addTreeCollection(QTreeWidget *tree, QTreeWidgetItem *parent, const card_collection &c);
     void addTreeTest(QTreeWidget *tree, QTreeWidgetItem *parent, const test &t);
     void addTreeTestResult(QTreeWidget *tree, QTreeWidgetItem *parent, const test_result &r);
 
@@ -80,6 +81,8 @@ private slots:
     void on_actionExpand_All_triggered();
 
     void on_actionCollapse_All_triggered();
+
+    void on_actionExport_All_triggered();
 
 signals:
     void sendExtractFinished();

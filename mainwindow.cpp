@@ -13,6 +13,7 @@
 #include <QColor>
 #include <QPainter>
 #include <QObjectList>
+#include <QMessageBox>
 
 #include <filesystem>
 
@@ -20,6 +21,8 @@
 #include "archiveparser.h"
 #include "customtreewidget.h"
 #include "customtreewidgetitem.h"
+#include "grouptreewidgetitem.h"
+#include "exportcompletebox.h"
 
 #include "zip_file.hpp"
 
@@ -108,6 +111,30 @@ void MainWindow::on_actionAbout_triggered()
     abt.exec();
 }
 
+void MainWindow::on_actionExport_All_triggered()
+{
+    customTreeWidget *tree = static_cast<customTreeWidget*>(this->tabWidget->currentWidget());
+
+    QString filename = QFileDialog::getSaveFileName(this, "Export Data");
+
+    QFile exportFile(filename);
+    if(exportFile.open(QIODevice::WriteOnly)){
+        exportFile.write("Name, Total Tests, Tests Passed, Tests Failed\n");
+        for(int i = 0; i < tree->topLevelItemCount(); i++){
+            groupTreeWidgetItem *item = static_cast<groupTreeWidgetItem*>(tree->topLevelItem(i));
+            QTextStream stream(&exportFile);
+            stream << QString::fromStdString(item->getCardGroup().group_name) << ", ";
+            stream << item->getTotalTests() << ", ";
+            stream << item->getTestsPassed() << ", ";
+            stream << item->getTestsFailed();
+            stream << "\n";
+        }
+        exportFile.close();
+    }
+    exportCompleteBox box(this);
+    box.exec();
+}
+
 void MainWindow::on_actionExpand_All_triggered()
 {
     if(this->tabWidget != nullptr){
@@ -157,6 +184,7 @@ void MainWindow::recieveTabClose(int index)
         delete this->tabWidget;
         this->tabWidget = nullptr;
         this->statusLabel->setText("No File");
+        this->ui->actionExport_All->setEnabled(false);
         this->ui->actionExpand_All->setEnabled(false);
         this->ui->actionCollapse_All->setEnabled(false);
     }
@@ -257,6 +285,7 @@ void MainWindow::loadFile(QString filePath)
         connect(this->tabWidget, &QTabWidget::currentChanged, this, &MainWindow::recieveTabChanged);
         connect(this->tabWidget, &QTabWidget::tabCloseRequested, this, &MainWindow::recieveTabClose);
 
+        this->ui->actionExport_All->setEnabled(true);
         this->ui->actionExpand_All->setEnabled(true);
         this->ui->actionCollapse_All->setEnabled(true);
     }
@@ -333,25 +362,27 @@ void MainWindow::extract(MainWindow *window, QString filePath, QString outputPat
 
 void MainWindow::addTreeGroup(QTreeWidget *tree, const group &g)
 {
-    int total_tests, tests_passed, tests_failed;
-    total_tests = tests_failed = tests_passed = 0;
-
-    for(const auto &t: g.tests){
-        if(t.results.back().test_outcome == "passed"){
-            tests_passed++;
-        }else if(t.results.back().test_outcome == "failed"){
-            tests_failed++;
-        }
-        total_tests++;
+    if(g.contact.tests.size() == 0 && g.contactless.tests.size() == 0){
+        return;
     }
 
-    QTreeWidgetItem *treeItem = new QTreeWidgetItem(tree);
-    treeItem->setText(0, QString::fromStdString(g.group_name));
-    treeItem->setText(3, (QString::number(total_tests) + " Total Tests"));
-    treeItem->setText(4, (QString::number(tests_failed) + " Tests Failed"));
-    treeItem->setText(5, (QString::number(tests_passed) + " Tests Passed"));
+    groupTreeWidgetItem *treeItem = new groupTreeWidgetItem(g, tree);
 
-    for(const auto &t: g.tests){
+    if(g.contact.tests.size() != 0){
+        this->addTreeCollection(tree, treeItem, g.contact);
+    }
+    if(g.contactless.tests.size() != 0){
+        this->addTreeCollection(tree, treeItem, g.contactless);
+    }
+}
+
+void MainWindow::addTreeCollection(QTreeWidget *tree, QTreeWidgetItem *parent, const card_collection &c)
+{
+    QTreeWidgetItem *treeItem = new QTreeWidgetItem(parent);
+
+    treeItem->setText(0, QString::fromStdString(c.collection_name));
+
+    for(const auto &t: c.tests){
         this->addTreeTest(tree, treeItem, t);
     }
     treeItem->setExpanded(true);

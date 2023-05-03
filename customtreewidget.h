@@ -33,6 +33,7 @@ public slots:
     void receiveContextMenuRequest(QPoint pos);
     void receiveShowFile();
     void receiveShowFolder();
+    void receiveExportData();
 };
 
 #endif // CUSTOMTREEWIDGET_H
