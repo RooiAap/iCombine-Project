@@ -27,7 +27,7 @@ exportCompleteBox::exportCompleteBox(QWidget *parent) :
                                      text_rect.height());
 
     QRect button_rect = this->ui->okButton->geometry();
-    this->ui->okButton->setGeometry(this->rect().center().x() - (text_rect.width() / 2),
+    this->ui->okButton->setGeometry(this->rect().center().x() - (button_rect.width() / 2),
                                     button_rect.y(),
                                     button_rect.width(),
                                     button_rect.height());

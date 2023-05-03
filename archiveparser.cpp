@@ -145,8 +145,8 @@ std::vector<group> archiveParser::parse()
     jcb.group_name = "JCB";
     jcb.contact.collection_name = "Contact";
     jcb.contactless.collection_name = "Contactless";
-    std::regex jcb_contact_pattern("TCI_CT");
-    std::regex jcb_contactless_pattern("TCI_CL");
+    std::regex jcb_contact_pattern("");
+    std::regex jcb_contactless_pattern("");
     for(auto &t: test_cases){
         if(!t.used){
             if(std::regex_search(t.test_name, jcb_contact_pattern)){
