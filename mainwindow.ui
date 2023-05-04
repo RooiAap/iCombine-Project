@@ -54,6 +54,7 @@
     <addaction name="actionExpand_All"/>
     <addaction name="actionCollapse_All"/>
     <addaction name="separator"/>
+    <addaction name="actionShow_History"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
@@ -97,6 +98,17 @@
   <action name="actionExit">
    <property name="text">
     <string>Exit</string>
+   </property>
+  </action>
+  <action name="actionShow_History">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Show History</string>
    </property>
   </action>
  </widget>

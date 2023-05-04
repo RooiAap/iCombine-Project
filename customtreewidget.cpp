@@ -2,6 +2,7 @@
 #include "customtreewidget.h"
 #include "customtreewidgetitem.h"
 #include "grouptreewidgetitem.h"
+#include "collectiontreewidgetitem.h"
 #include "exportcompletebox.h"
 
 #include <QDir>
@@ -88,21 +89,26 @@ void customTreeWidget::receiveExportData()
 {
     groupTreeWidgetItem *item = static_cast<groupTreeWidgetItem*>(this->itemAt(this->contextMenuPosition));
 
-    QString filename = QFileDialog::getSaveFileName(this, "Export Group");
+    QString suggestedName = QString::fromStdString(item->getCardGroup().group_name).toLower() + ".csv";
+    QString filename = QFileDialog::getSaveFileName(this, "Export Group", suggestedName, "CSV (*.csv)");
     if(filename.length() == 0){
         return;
     }
 
     QFile exportFile(filename);
     if(exportFile.open(QIODevice::WriteOnly)){
-        QTextStream stream(&exportFile);
+        exportFile.write("Name, Total Tests, Tests Passed, Tests Failed, % Complete\n");
+        for(int j = 0; j < item->childCount(); j++){
+            collectionTreeWidgetItem *child = static_cast<collectionTreeWidgetItem*>(item->child(j));
 
-        stream << "Name, Total Tests, Tests Passed, Tests Failed\n";
-        stream << QString::fromStdString(item->getCardGroup().group_name) + ", ";
-        stream << item->getTotalTests() << ", ";
-        stream << item->getTestsPassed() << ", ";
-        stream << item->getTestsFailed();
-
+            QTextStream stream(&exportFile);
+            stream << QString::fromStdString(item->getCardGroup().group_name + "(" + child->getCollection().collection_name + ")") << ", ";
+            stream << child->getTotalTests() << ", ";
+            stream << child->getTestsPassed() << ", ";
+            stream << child->getTestsFailed() << ", ";
+            stream << QString::number(((child->getTestsPassed()*1.0) / (child->getTotalTests()*1.0))*100, 'f', 1);
+            stream << "\n";
+        }
         exportFile.close();
     }
 

@@ -15,6 +15,10 @@ public:
 
     card_collection getCollection() const;
 
+    int getTotalTests() const;
+    int getTestsPassed() const;
+    int getTestsFailed() const;
+
 private:
     card_collection collection;
 

@@ -29,3 +29,16 @@ card_collection collectionTreeWidgetItem::getCollection() const
 {
     return this->collection;
 }
+
+int collectionTreeWidgetItem::getTotalTests() const
+{
+    return this->total_tests;
+}
+int collectionTreeWidgetItem::getTestsPassed() const
+{
+    return this->tests_passed;
+}
+int collectionTreeWidgetItem::getTestsFailed() const
+{
+    return this->tests_failed;
+}

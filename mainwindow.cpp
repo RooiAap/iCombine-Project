@@ -5,13 +5,12 @@
 #include <QFileDialog>
 #include <QFile>
 #include <QDir>
-#include <QList>
 #include <QPushButton>
 #include <QFuture>
 #include <QtConcurrent/QtConcurrent>
 #include <QBrush>
 #include <QColor>
-#include <QPainter>
+#include <QHeaderView>
 
 #include <filesystem>
 #include <regex>
@@ -65,6 +64,8 @@ MainWindow::MainWindow(QWidget *parent)
     this->ui->statusbar->addPermanentWidget(this->statusLabel);
     this->ui->statusbar->setVisible(true);
 
+    this->ui->actionShow_History->setChecked(false);
+
     this->filePath = "";
 
     connect(this, &MainWindow::sendDragNDropComplete, this, &MainWindow::recieveDragNDropComplete);
@@ -73,7 +74,7 @@ MainWindow::MainWindow(QWidget *parent)
     QDir dir;
     if(!dir.exists(this->outputPath)){
         dir.mkdir(this->outputPath);
-    }
+    }   
 }
 
 MainWindow::~MainWindow()
@@ -115,22 +116,28 @@ void MainWindow::on_actionExport_All_triggered()
 {
     customTreeWidget *tree = static_cast<customTreeWidget*>(this->tabWidget->currentWidget());
 
-    QString filename = QFileDialog::getSaveFileName(this, "Export Data");
+    QString suggestedName = "data.csv";
+    QString filename = QFileDialog::getSaveFileName(this, "Export Data", suggestedName, "CSV (*.csv)");
     if(filename.length() == 0){
         return;
     }
 
     QFile exportFile(filename);
     if(exportFile.open(QIODevice::WriteOnly)){
-        exportFile.write("Name, Total Tests, Tests Passed, Tests Failed\n");
+        exportFile.write("Name, Total Tests, Tests Passed, Tests Failed, % Complete\n");
         for(int i = 0; i < tree->topLevelItemCount(); i++){
             groupTreeWidgetItem *item = static_cast<groupTreeWidgetItem*>(tree->topLevelItem(i));
-            QTextStream stream(&exportFile);
-            stream << QString::fromStdString(item->getCardGroup().group_name) << ", ";
-            stream << item->getTotalTests() << ", ";
-            stream << item->getTestsPassed() << ", ";
-            stream << item->getTestsFailed();
-            stream << "\n";
+            for(int j = 0; j < item->childCount(); j++){
+                collectionTreeWidgetItem *child = static_cast<collectionTreeWidgetItem*>(item->child(j));
+
+                QTextStream stream(&exportFile);
+                stream << QString::fromStdString(item->getCardGroup().group_name + "(" + child->getCollection().collection_name + ")") << ", ";
+                stream << child->getTotalTests() << ", ";
+                stream << child->getTestsPassed() << ", ";
+                stream << child->getTestsFailed() << ", ";
+                stream << QString::number(((child->getTestsPassed()*1.0) / (child->getTotalTests()*1.0))*100, 'f', 1);
+                stream << "\n";
+            }
         }
         exportFile.close();
     }
@@ -179,6 +186,53 @@ void MainWindow::on_actionCollapse_All_triggered()
     }
 }
 
+void MainWindow::on_actionShow_History_toggled(bool arg1)
+{
+    if(!arg1){
+        for(int i = 0; i < this->tabWidget->count(); i++){
+            customTreeWidget *tree = static_cast<customTreeWidget*>(this->tabWidget->widget(i));
+            this->hideTreeElements(tree);
+        }
+    }else{
+        for(int i = 0; i < this->tabWidget->count(); i++){
+            customTreeWidget *tree = static_cast<customTreeWidget*>(this->tabWidget->widget(i));
+            this->showTreeElements(tree);
+        }
+    }
+}
+
+void MainWindow::showTreeElements(QTreeWidget *tree)
+{
+    for(int i = 0; i < tree->topLevelItemCount(); i++){
+        QTreeWidgetItem *item = tree->topLevelItem(i);
+        for(int j = 0; j < item->childCount(); j++){
+            QTreeWidgetItem *child = item->child(j);
+            for(int k = 0; k < child->childCount(); k++){
+                QTreeWidgetItem *grandChild = child->child(k);
+                for(int l = 0; l < grandChild->childCount()-1; l++){
+                    grandChild->child(l)->setHidden(false);
+                }
+            }
+        }
+    }
+}
+
+void MainWindow::hideTreeElements(QTreeWidget *tree)
+{
+    for(int i = 0; i < tree->topLevelItemCount(); i++){
+        QTreeWidgetItem *item = tree->topLevelItem(i);
+        for(int j = 0; j < item->childCount(); j++){
+            QTreeWidgetItem *child = item->child(j);
+            for(int k = 0; k < child->childCount(); k++){
+                QTreeWidgetItem *grandChild = child->child(k);
+                for(int l = 0; l < grandChild->childCount()-1; l++){
+                    grandChild->child(l)->setHidden(true);
+                }
+            }
+        }
+    }
+}
+
 void MainWindow::recieveDragNDropComplete(QStringList files)
 {
     foreach(const auto &file, files){
@@ -204,6 +258,7 @@ void MainWindow::recieveTabClose(int index)
         this->ui->actionExport_All->setEnabled(false);
         this->ui->actionExpand_All->setEnabled(false);
         this->ui->actionCollapse_All->setEnabled(false);
+        this->ui->actionShow_History->setEnabled(false);
     }
 }
 
@@ -305,6 +360,7 @@ void MainWindow::loadFile(QString filePath)
         this->ui->actionExport_All->setEnabled(true);
         this->ui->actionExpand_All->setEnabled(true);
         this->ui->actionCollapse_All->setEnabled(true);
+        this->ui->actionShow_History->setEnabled(true);
     }
 
     customTreeWidget *newTree = new customTreeWidget(filePath);
@@ -478,8 +534,12 @@ void MainWindow::loadFile(QString filePath)
     for(const auto &g: group_results){
         this->addTreeGroup(newTree, g);
     }
-    newTree->resizeColumnToContents(0);
-    newTree->resizeColumnToContents(1);
+    if(this->ui->actionShow_History->isChecked()){
+        this->showTreeElements(newTree);
+    }else{
+        this->hideTreeElements(newTree);
+    }
+    newTree->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
     delete results;
 }
 
@@ -539,7 +599,7 @@ void MainWindow::addTreeCollection(QTreeWidget *tree, QTreeWidgetItem *parent, c
 
 void MainWindow::addTreeTest(QTreeWidget *tree, QTreeWidgetItem *parent, const test &t)
 {
-    QTreeWidgetItem *treeItem = new QTreeWidgetItem(parent, 4);
+    QTreeWidgetItem *treeItem = new QTreeWidgetItem(parent, 4);    
 
     for(int i = 0; i < tree->columnCount(); i++){
         treeItem->setBackground(i, QBrush(QColor(226, 230, 232)));
@@ -551,6 +611,7 @@ void MainWindow::addTreeTest(QTreeWidget *tree, QTreeWidgetItem *parent, const t
         this->addTreeTestResult(tree, treeItem, r);
     }
     treeItem->setExpanded(false);
+    treeItem->sortChildren(0, Qt::SortOrder::AscendingOrder);
 }
 
 void MainWindow::addTreeTestResult(QTreeWidget *tree, QTreeWidgetItem *parent, const test_result &r)
