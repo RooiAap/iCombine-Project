@@ -16,6 +16,7 @@
 // 1.3.0: Added export to csv functionality
 // 1.3.1: Minor UI fixes
 // 1.3.2: Improved test grouping
+// 1.3.3: Finalized data export
 
 QVersionNumber version(VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
 
