@@ -11,6 +11,7 @@
 #include <QBrush>
 #include <QColor>
 #include <QHeaderView>
+#include <QVBoxLayout>
 
 #include <filesystem>
 #include <regex>
@@ -114,7 +115,15 @@ void MainWindow::on_actionAbout_triggered()
 
 void MainWindow::on_actionExport_All_triggered()
 {
-    customTreeWidget *tree = static_cast<customTreeWidget*>(this->tabWidget->currentWidget());
+    customTreeWidget *tree;
+    QLayout *l = this->tabWidget->currentWidget()->layout();
+    for(int i = 0; i < l->count(); i++){
+        QWidget *w = l->itemAt(i)->widget();
+        if(w->objectName() == "Tree"){
+            tree = static_cast<customTreeWidget*>(w);
+            break;
+        }
+    }
 
     QString suggestedName = "data.csv";
     QString filename = QFileDialog::getSaveFileName(this, "Export Data", suggestedName, "CSV (*.csv)");
@@ -150,6 +159,14 @@ void MainWindow::on_actionExpand_All_triggered()
     if(this->tabWidget != nullptr){
         if(this->tabWidget->currentWidget() != nullptr){
             QTreeWidget *tree = static_cast<QTreeWidget*>(this->tabWidget->currentWidget());
+            QLayout *l = this->tabWidget->currentWidget()->layout();
+            for(int i = 0; i < l->count(); i++){
+                QWidget *w = l->itemAt(i)->widget();
+                if(w->objectName() == "Tree"){
+                    tree = static_cast<QTreeWidget*>(w);
+                    break;
+                }
+            }
             for(int i = 0; i < tree->topLevelItemCount(); i++){
                 QTreeWidgetItem *item = tree->topLevelItem(i);                
                 item->setExpanded(true);
@@ -171,6 +188,14 @@ void MainWindow::on_actionCollapse_All_triggered()
     if(this->tabWidget != nullptr){
         if(this->tabWidget->currentWidget() != nullptr){
             QTreeWidget *tree = static_cast<QTreeWidget*>(this->tabWidget->currentWidget());
+            QLayout *l = this->tabWidget->currentWidget()->layout();
+            for(int i = 0; i < l->count(); i++){
+                QWidget *w = l->itemAt(i)->widget();
+                if(w->objectName() == "Tree"){
+                    tree = static_cast<QTreeWidget*>(w);
+                    break;
+                }
+            }
             for(int i = 0; i < tree->topLevelItemCount(); i++){
                 QTreeWidgetItem *item = tree->topLevelItem(i);
                 item->setExpanded(false);
@@ -190,12 +215,28 @@ void MainWindow::on_actionShow_History_toggled(bool arg1)
 {
     if(!arg1){
         for(int i = 0; i < this->tabWidget->count(); i++){
-            customTreeWidget *tree = static_cast<customTreeWidget*>(this->tabWidget->widget(i));
+            QTreeWidget *tree = static_cast<QTreeWidget*>(this->tabWidget->widget(i));
+            QLayout *l = this->tabWidget->currentWidget()->layout();
+            for(int i = 0; i < l->count(); i++){
+                QWidget *w = l->itemAt(i)->widget();
+                if(w->objectName() == "Tree"){
+                    tree = static_cast<QTreeWidget*>(w);
+                    break;
+                }
+            }
             this->hideTreeElements(tree);
         }
     }else{
         for(int i = 0; i < this->tabWidget->count(); i++){
-            customTreeWidget *tree = static_cast<customTreeWidget*>(this->tabWidget->widget(i));
+            QTreeWidget *tree = static_cast<QTreeWidget*>(this->tabWidget->widget(i));
+            QLayout *l = this->tabWidget->currentWidget()->layout();
+            for(int i = 0; i < l->count(); i++){
+                QWidget *w = l->itemAt(i)->widget();
+                if(w->objectName() == "Tree"){
+                    tree = static_cast<QTreeWidget*>(w);
+                    break;
+                }
+            }
             this->showTreeElements(tree);
         }
     }
@@ -243,7 +284,15 @@ void MainWindow::recieveDragNDropComplete(QStringList files)
 void MainWindow::recieveTabChanged(int index)
 {
     if(index >= 0){
-        customTreeWidget *tree = static_cast<customTreeWidget*>(this->tabWidget->widget(index));
+        customTreeWidget *tree;
+        QLayout *l = this->tabWidget->currentWidget()->layout();
+        for(int i = 0; i < l->count(); i++){
+            QWidget *w = l->itemAt(i)->widget();
+            if(w->objectName() == "Tree"){
+                tree = static_cast<customTreeWidget*>(w);
+                break;
+            }
+        }
         this->statusLabel->setText(tree->getFilePath());
     }
 }
@@ -364,6 +413,7 @@ void MainWindow::loadFile(QString filePath)
     }
 
     customTreeWidget *newTree = new customTreeWidget(filePath);
+    newTree->setObjectName("Tree");
     newTree->setColumnCount(6);
     newTree->setSelectionBehavior(QAbstractItemView::SelectRows);
     newTree->setDropIndicatorShown(false);
@@ -378,10 +428,7 @@ void MainWindow::loadFile(QString filePath)
     connect(newTree, &customTreeWidget::customContextMenuRequested, newTree, &customTreeWidget::receiveContextMenuRequest);
 
     std::string s = info.fileName().toStdString();
-    size_t pos = s.find_last_of('.', std::string::npos);
-
-    this->tabWidget->addTab(newTree, QString::fromStdString(s.substr(0, pos)));
-    this->tabWidget->setCurrentWidget(newTree);
+    size_t pos = s.find_last_of('.', std::string::npos);    
 
     this->statusLabel->setText(filePath);
 
@@ -529,7 +576,7 @@ void MainWindow::loadFile(QString filePath)
         }
     }
 
-    std::vector<group> group_results = {mastercard, visa, amex, diners, jcb};
+    std::vector<group> group_results = {mastercard, visa, amex, diners, jcb};    
 
     for(const auto &g: group_results){
         this->addTreeGroup(newTree, g);
@@ -540,6 +587,69 @@ void MainWindow::loadFile(QString filePath)
         this->hideTreeElements(newTree);
     }
     newTree->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
+
+    QStringList tableHeaders;
+    tableHeaders << "Name" << "Total Tests" << "Tests Passed";
+    tableHeaders << "Tests Failed" << "% Complete";
+
+    QTableWidget *tableWidget = new QTableWidget();
+    tableWidget->setObjectName("Table");
+    tableWidget->verticalHeader()->setVisible(false);
+    tableWidget->setColumnCount(tableHeaders.length());
+    tableWidget->setHorizontalHeaderLabels(tableHeaders);
+    tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    tableWidget->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    tableWidget->setFocusPolicy(Qt::NoFocus);
+    tableWidget->setSelectionMode(QAbstractItemView::NoSelection);
+
+    QList<QStringList> cellItems;
+    for(int i = 0; i < newTree->topLevelItemCount(); i++){
+        groupTreeWidgetItem *item = static_cast<groupTreeWidgetItem*>(newTree->topLevelItem(i));
+        for(int j = 0; j < item->childCount(); j++){
+            collectionTreeWidgetItem *child = static_cast<collectionTreeWidgetItem*>(item->child(j));
+
+            tableWidget->insertRow(tableWidget->rowCount()+1);
+            QStringList rowItems;
+            rowItems << QString::fromStdString(item->getCardGroup().group_name + "(" + child->getCollection().collection_name + ")");
+            rowItems << QString::number(child->getTotalTests());
+            rowItems << QString::number(child->getTestsPassed());
+            rowItems << QString::number(child->getTestsFailed());
+            rowItems << QString::number(((child->getTestsPassed()*1.0) / (child->getTotalTests()*1.0))*100, 'f', 1);
+            cellItems.push_back(rowItems);
+        }
+    }
+
+    tableWidget->setRowCount(cellItems.length());
+    for(int i = 0; i < cellItems.length(); i++){
+        QStringList l = cellItems.at(i);
+        for(int j = 0; j < l.length(); j++){
+            QTableWidgetItem *item = new QTableWidgetItem(l.at(j));
+            item->setTextAlignment(Qt::AlignCenter);
+            tableWidget->setItem(i, j, item);
+        }
+    }
+
+    for(int i = 0; i < tableWidget->rowCount(); i++){
+        QTableWidgetItem *item = tableWidget->item(i, tableWidget->columnCount()-1);
+        double itemCompleteValue = item->text().toDouble();
+        if(itemCompleteValue >= 0 && itemCompleteValue <= 50){
+            item->setBackground(QBrush(QColor(255, 132, 132))); //red
+        }else if(itemCompleteValue > 50 && itemCompleteValue <= 75){
+            item->setBackground(QBrush(QColor(255, 251, 136))); //yellow
+        }else{
+            item->setBackground(QBrush(QColor(101, 255, 182))); //green
+        }
+    }
+
+    QVBoxLayout *layout = new QVBoxLayout();
+    layout->addWidget(newTree, 1);
+    layout->addWidget(tableWidget, 1);
+
+    QWidget *newWidget = new QWidget();
+    newWidget->setLayout(layout);
+    this->tabWidget->addTab(newWidget, QString::fromStdString(s.substr(0, pos)));
+    this->tabWidget->setCurrentWidget(newWidget);
+
     delete results;
 }
 
