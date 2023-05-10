@@ -6,6 +6,7 @@
 #include <QFile>
 #include <QDir>
 #include <QPushButton>
+#include <QProgressBar>
 #include <QFuture>
 #include <QtConcurrent/QtConcurrent>
 #include <QBrush>
@@ -632,13 +633,20 @@ void MainWindow::loadFile(QString filePath)
     for(int i = 0; i < tableWidget->rowCount(); i++){
         QTableWidgetItem *item = tableWidget->item(i, tableWidget->columnCount()-1);
         double itemCompleteValue = item->text().toDouble();
+        QProgressBar *progressBar = new QProgressBar();
+        progressBar->setTextVisible(true);
+        progressBar->setMinimum(0);
+        progressBar->setMaximum(100);
+        progressBar->setValue(itemCompleteValue);
+        progressBar->setAlignment(Qt::AlignCenter);
         if(itemCompleteValue >= 0 && itemCompleteValue <= 50){
-            item->setBackground(QBrush(QColor(255, 132, 132))); //red
+            progressBar->setStyleSheet("QProgressBar::chunk {background-color: #DA2B25;}");
         }else if(itemCompleteValue > 50 && itemCompleteValue <= 75){
-            item->setBackground(QBrush(QColor(255, 251, 136))); //yellow
+            progressBar->setStyleSheet("QProgressBar::chunk {background-color: #E5E11A;}");
         }else{
-            item->setBackground(QBrush(QColor(101, 255, 182))); //green
+            progressBar->setStyleSheet("QProgressBar::chunk {background-color: #27D870;}");
         }
+        tableWidget->setCellWidget(item->row(), item->column(), progressBar);
     }
 
     QVBoxLayout *layout = new QVBoxLayout();
