@@ -11,8 +11,9 @@
 #include <QString>
 #include <QDir>
 #include <QThread>
-#include <QTreeWidget>
 #include <QTabWidget>
+#include <QTreeWidget>
+#include <QTableWidget>
 
 #include "test_case_types.h"
 #include "archiveinoutdialog.h"
