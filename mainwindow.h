@@ -56,7 +56,7 @@ private:
 
     QTabWidget *tabWidget;
 
-    QString filePath;
+    std::vector<QString> filePaths;
     QString outputPath;
 
     QStringList acceptedTypes;
@@ -69,7 +69,7 @@ private:
     archiveInOutDialog *inOut;
 
 public slots:
-    void receivePaths(QString archive);
+    void receivePaths(std::vector<std::string> archives);
 
 private slots:
     void on_actionExit_triggered();

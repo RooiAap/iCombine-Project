@@ -5,6 +5,9 @@
 #include <QPushButton>
 #include <QString>
 
+#include <string>
+#include <vector>
+
 namespace Ui {
 class archiveInOutDialog;
 }
@@ -34,7 +37,7 @@ protected slots:
     void checkDataValidity();
 
 signals:
-    void sendPaths(QString archive);
+    void sendPaths(std::vector<std::string> archives);
 };
 
 #endif // ARCHIVEINOUTDIALOG_H

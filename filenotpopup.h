@@ -2,6 +2,7 @@
 #define FILENOTPOPUP_H
 
 #include <QDialog>
+#include <QString>
 
 namespace Ui {
 class fileNotPopUp;
@@ -12,7 +13,7 @@ class fileNotPopUp : public QDialog
     Q_OBJECT
 
 public:
-    explicit fileNotPopUp(QWidget *parent = nullptr);
+    explicit fileNotPopUp(QString filename, QWidget *parent = nullptr);
     ~fileNotPopUp();
 
 private slots:

@@ -4,6 +4,7 @@
 #include <QDir>
 #include <QFile>
 #include <QFileDialog>
+#include <QStringList>
 #include <QLineEdit>
 #include <QPixmap>
 
@@ -28,27 +29,48 @@ archiveInOutDialog::~archiveInOutDialog()
 
 void archiveInOutDialog::on_inputFileChooser_clicked()
 {
-    QString filename = QFileDialog::getOpenFileName(this, "Load File", QString(), this->fileFilter);
+    QStringList filenames = QFileDialog::getOpenFileNames(this, "Load File(s)", QString(), this->fileFilter);
     this->ui->inputArchivePathEntry->clear();
-    this->ui->inputArchivePathEntry->insert(filename);
+
+    std::stringstream ss;
+    for(const QString &s: filenames){
+        ss << s.toStdString() << ",";
+    }
+
+    QString files = QString::fromStdString(ss.str());
+    this->ui->inputArchivePathEntry->insert(files);
 }
 
 void archiveInOutDialog::on_okButton_clicked()
 {
-    QString archive = this->ui->inputArchivePathEntry->displayText();
-    if(!QFile::exists(archive)){
-        fileNotPopUp popUp;
-        popUp.exec();
-        return;
+    QString archives = this->ui->inputArchivePathEntry->displayText();
+
+    std::stringstream stream(archives.toStdString());
+    std::string segment;
+    std::vector<std::string> archiveList;
+    while (std::getline(stream, segment, ',')) {
+        archiveList.push_back(segment);
     }
-    emit sendPaths(archive);
+
+    for(int i = 0; i < archiveList.size(); i++){
+        QString qArchive = QString::fromStdString(archiveList.at(i));
+        if(!QFile::exists(qArchive)){
+            archiveList.erase(archiveList.begin() + i);
+            fileNotPopUp popUp(qArchive);
+            popUp.exec();
+        }
+    }
+
+    emit sendPaths(archiveList);
     this->close();
 }
 
 
 void archiveInOutDialog::on_cancelButton_clicked()
 {
-    emit sendPaths("");
+    std::vector<std::string> v;
+    v.clear();
+    emit sendPaths(v);
     this->close();
 }
 

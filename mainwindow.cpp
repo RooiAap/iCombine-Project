@@ -68,7 +68,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     this->ui->actionShow_History->setChecked(false);
 
-    this->filePath = "";
+    this->filePaths.clear();
 
     connect(this, &MainWindow::sendDragNDropComplete, this, &MainWindow::recieveDragNDropComplete);
 
@@ -101,9 +101,11 @@ void MainWindow::on_actionLoad_triggered()
     this->loadFile();
 }
 
-void MainWindow::receivePaths(QString archive)
+void MainWindow::receivePaths(std::vector<std::string> archives)
 {
-    this->filePath = archive;
+    for(const std::string &archive: archives){
+        this->filePaths.push_back(QString::fromStdString(archive));
+    }
 }
 
 
@@ -386,11 +388,13 @@ void MainWindow::loadFile()
     this->inOut->exec();
     delete this->inOut;
 
-    if(this->filePath.size() == 0){
+    if(this->filePaths.empty()){
         return;
     }
 
-    this->loadFile(this->filePath);
+    for(const QString &file: this->filePaths){
+        this->loadFile(file);
+    }
 }
 
 void MainWindow::loadFile(QString filePath)

@@ -57,10 +57,6 @@ std::vector<test> archiveParser::parse()
         }
     }
 
-    for(const auto &t: test_cases){
-        qDebug().noquote() << QString::fromStdString(t.test_name);
-    }
-
     return test_cases;
 }
 
